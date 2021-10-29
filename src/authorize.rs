@@ -19,7 +19,7 @@ pub async fn authorize_endpoint(
         if response_type.contains("code") {
             redirect_uri
                 .query_pairs_mut()
-                .append_pair("token", &Uuid::new_v4().to_string());
+                .append_pair("code", &Uuid::new_v4().to_string());
         }
         if response_type.contains("id_token") {
             let token = token(config).await;

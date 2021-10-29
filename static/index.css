@@ -1,0 +1,14 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 70px;
+    background-color: bisque;
+}
+
+.code {
+    font-family: monospace;
+    word-wrap: break-word;
+}

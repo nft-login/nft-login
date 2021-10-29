@@ -1,6 +1,12 @@
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate rocket_include_static_resources;
+
+use rocket::State;
+use rocket_include_static_resources::{EtagIfNoneMatch, StaticContextManager, StaticResponse};
+
 use openidconnect::core::{CoreJsonWebKeySet, CoreRsaPrivateSigningKey};
 use openidconnect::{JsonWebKeyId, PrivateSigningKey};
 
@@ -12,9 +18,18 @@ use authorize::authorize_endpoint;
 use config::{configuration, Config};
 use token::token_endpoint;
 
+cached_static_response_handler! {
+    259_200;
+    "/index.js" => cached_indexjs => "indexjs",
+    "/index.css" => cached_indexcss => "indexcss",
+}
+
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index(
+    static_resources: &State<StaticContextManager>,
+    etag_if_none_match: EtagIfNoneMatch,
+) -> StaticResponse {
+    static_resources.build(&etag_if_none_match, "index")
 }
 
 #[get("/jwk")]
@@ -38,6 +53,12 @@ fn rocket() -> _ {
     };
 
     rocket::build()
+        .attach(static_resources_initializer!(
+            "indexjs" => "static/index.js",
+            "indexcss" => "static/index.css",
+            "index" => ("static", "index.html"),
+        ))
+        .mount("/", routes![cached_indexjs, cached_indexcss])
         .mount(
             "/",
             routes![
