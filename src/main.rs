@@ -4,8 +4,11 @@ extern crate rocket;
 use openidconnect::core::{CoreJsonWebKeySet, CoreRsaPrivateSigningKey};
 use openidconnect::{JsonWebKeyId, PrivateSigningKey};
 
+mod authorize;
 mod config;
+mod token;
 
+use authorize::authorize_endpoint;
 use config::{configuration, Config};
 
 #[get("/")]
@@ -33,6 +36,6 @@ fn rocket() -> _ {
     };
 
     rocket::build()
-        .mount("/", routes![index, configuration, jwk])
+        .mount("/", routes![index, authorize_endpoint, configuration, jwk])
         .manage(config)
 }
