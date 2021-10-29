@@ -1,3 +1,4 @@
+use rocket::response::content;
 use rocket::State;
 
 use openidconnect::core::{
@@ -14,7 +15,7 @@ pub struct Config {
 }
 
 #[get("/.well-known/openid-configuration")]
-pub fn configuration(config: &State<Config>) -> Result<String, std::io::Error> {
+pub fn configuration(config: &State<Config>) -> content::Json<String> {
     let provider_metadata = CoreProviderMetadata::new(
         IssuerUrl::new(config.ext_hostname.to_string()).unwrap(),
         AuthUrl::new(format!("{}/authorize", config.ext_hostname).to_string()).unwrap(),
@@ -55,5 +56,5 @@ pub fn configuration(config: &State<Config>) -> Result<String, std::io::Error> {
         CoreClaimName::new("locale".to_string()),
     ]));
 
-    serde_json::to_string(&provider_metadata).map_err(From::from)
+    content::Json(serde_json::to_string(&provider_metadata).unwrap())
 }
