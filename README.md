@@ -9,6 +9,8 @@ This ownership can be used to give access to any digital resource or service.
 
 ## Functionality
 
+![Implicit Flow Diagram](https://s3.amazonaws.com/onelogin-screenshots/dev_site/images/oidc-implicit-flow.png)
+
 - A nft will be created on the ethereum blockchain.
   The nft will be sold and the ownership will be transfered.
 
