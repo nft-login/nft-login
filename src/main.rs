@@ -10,6 +10,7 @@ mod token;
 
 use authorize::authorize_endpoint;
 use config::{configuration, Config};
+use token::token_endpoint;
 
 #[get("/")]
 fn index() -> &'static str {
@@ -33,9 +34,19 @@ fn jwk() -> String {
 fn rocket() -> _ {
     let config = Config {
         ext_hostname: "https://localhost:8000".to_string(),
+        rsa_pem: include_str!("../do-not-use.pem").to_string(),
     };
 
     rocket::build()
-        .mount("/", routes![index, authorize_endpoint, configuration, jwk])
+        .mount(
+            "/",
+            routes![
+                index,
+                authorize_endpoint,
+                token_endpoint,
+                configuration,
+                jwk
+            ],
+        )
         .manage(config)
 }

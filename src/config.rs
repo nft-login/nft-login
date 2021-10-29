@@ -12,6 +12,7 @@ use openidconnect::{
 
 pub struct Config {
     pub ext_hostname: String,
+    pub rsa_pem: String,
 }
 
 #[get("/.well-known/openid-configuration")]
