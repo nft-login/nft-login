@@ -6,13 +6,28 @@ use rocket::State;
 use url::Url;
 use uuid::Uuid;
 
-#[get("/authorize?<redirect_uri>&<state>&<response_type>")]
+#[get("/authorize?<redirect_uri>&<state>&<response_type>&<nonce>&<account>&<signature>")]
 pub async fn authorize_endpoint(
     config: &State<Config>,
     redirect_uri: String,
     state: Option<String>,
     response_type: Option<String>,
+    nonce: String,
+    account: Option<String>,
+    signature: Option<String>,
 ) -> Redirect {
+    if account.is_none() {
+        let mut url = Url::parse(&config.ext_hostname).unwrap();
+        url.query_pairs_mut()
+            .clear()
+            .append_pair("state", &state.unwrap_or_default())
+            .append_pair("nonce", &nonce)
+            .append_pair("response_type", &response_type.unwrap())
+            .append_pair("redirect_uri", &redirect_uri);
+        println!("{:?}", url);
+        return Redirect::temporary(url.to_string());
+    };
+
     let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
     if let Some(response_type) = response_type {

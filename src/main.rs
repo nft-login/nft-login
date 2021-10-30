@@ -48,7 +48,7 @@ fn jwk() -> String {
 #[launch]
 fn rocket() -> _ {
     let config = Config {
-        ext_hostname: "https://localhost:8000".to_string(),
+        ext_hostname: "http://localhost:8000".to_string(),
         rsa_pem: include_str!("../do-not-use.pem").to_string(),
     };
 
