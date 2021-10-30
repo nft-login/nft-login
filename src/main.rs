@@ -4,6 +4,9 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_include_static_resources;
 
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
 use rocket::State;
 use rocket_include_static_resources::{EtagIfNoneMatch, StaticContextManager, StaticResponse};
 
@@ -16,7 +19,7 @@ mod token;
 
 use authorize::authorize_endpoint;
 use config::{configuration, Config};
-use token::token_endpoint;
+use token::{post_token_endpoint, token_endpoint, Tokens};
 
 cached_static_response_handler! {
     259_200;
@@ -49,13 +52,17 @@ fn jwk() -> String {
 fn rocket() -> _ {
     let rocket = rocket::build();
     let figment = rocket.figment();
-    let config : Config = figment.extract().expect("config");
+    let config: Config = figment.extract().expect("config");
 
     println!("{:?}", config);
 
     let config = Config {
         ext_hostname: config.ext_hostname.clone(),
         rsa_pem: Some(include_str!("../do-not-use.pem").to_string()),
+    };
+
+    let tokens: Tokens = Tokens {
+        muted: Arc::new(Mutex::new(HashMap::new())),
     };
 
     rocket
@@ -71,9 +78,11 @@ fn rocket() -> _ {
                 index,
                 authorize_endpoint,
                 token_endpoint,
+                post_token_endpoint,
                 configuration,
                 jwk
             ],
         )
         .manage(config)
+        .manage(tokens)
 }

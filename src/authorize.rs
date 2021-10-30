@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::token::token;
+use crate::token::{token, Tokens};
 use openidconnect::TokenResponse;
 use rocket::response::Redirect;
 use rocket::State;
@@ -11,6 +11,7 @@ use uuid::Uuid;
 )]
 pub async fn authorize_endpoint(
     config: &State<Config>,
+    tokens: &State<Tokens>,
     client_id: String,
     redirect_uri: String,
     state: Option<String>,
@@ -33,29 +34,30 @@ pub async fn authorize_endpoint(
 
     let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
+    let code = Uuid::new_v4().to_string();
+    let token = token(config, client_id, nonce, account).await;
+    let id_token = token.id_token().unwrap().to_string();
+    tokens
+        .muted
+        .lock()
+        .unwrap()
+        .insert(code.clone(), id_token.clone());
+
     if let Some(response_type) = response_type {
         if response_type.contains("code") {
-            redirect_uri
-                .query_pairs_mut()
-                .append_pair("code", &Uuid::new_v4().to_string());
+            redirect_uri.query_pairs_mut().append_pair("code", &code);
         }
         if response_type.contains("id_token") {
-            let token = token(config, client_id, nonce, account).await;
-            let id_token = token.id_token().unwrap().to_string();
             redirect_uri
                 .query_pairs_mut()
                 .append_pair("id_token", &id_token);
         } else if response_type.contains("token") {
-            let token = token(config, client_id, nonce, account).await;
-            let id_token = token.id_token().unwrap().to_string();
             redirect_uri
                 .query_pairs_mut()
                 .append_pair("id_token", &id_token);
         }
     } else {
-        redirect_uri
-            .query_pairs_mut()
-            .append_pair("token", &Uuid::new_v4().to_string());
+        redirect_uri.query_pairs_mut().append_pair("token", &code);
     };
 
     match state {

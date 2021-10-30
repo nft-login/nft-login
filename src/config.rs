@@ -1,6 +1,6 @@
 use rocket::response::content;
-use serde::Deserialize;
 use rocket::State;
+use serde::Deserialize;
 
 use openidconnect::core::{
     CoreClaimName, CoreJwsSigningAlgorithm, CoreProviderMetadata, CoreResponseType,

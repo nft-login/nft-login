@@ -5,20 +5,59 @@ use openidconnect::core::{
 };
 use openidconnect::TokenResponse;
 use openidconnect::{
-    AccessToken, Audience, EmptyAdditionalClaims, EmptyExtraTokenFields, IssuerUrl,
-    JsonWebKeyId, StandardClaims, SubjectIdentifier,
+    AccessToken, Audience, EmptyAdditionalClaims, EmptyExtraTokenFields, IssuerUrl, JsonWebKeyId,
+    StandardClaims, SubjectIdentifier,
 };
+use rocket::form::Form;
 use rocket::State;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use crate::config::Config;
 
+pub struct Tokens {
+    pub muted: Arc<Mutex<HashMap<String, String>>>,
+}
+
+#[derive(FromForm)]
+pub struct PostData {
+    pub grant_type: Option<String>,
+    pub code: String,
+    pub client_id: Option<String>,
+    pub client_secret: Option<String>,
+    pub redirect_uri: String,
+}
+
 #[get("/token?<client_id>&<nonce>")]
-pub async fn token_endpoint(config: &State<Config>, client_id: String, nonce: Option<String>) -> String {
+pub async fn token_endpoint(
+    config: &State<Config>,
+    client_id: String,
+    nonce: Option<String>,
+) -> String {
     let token = token(config, client_id, nonce, None).await;
     token.id_token().unwrap().to_string()
 }
 
-pub async fn token(config: &Config, client_id: String, nonce: Option<String>, account: Option<String>) -> CoreTokenResponse {
+#[post("/token", data = "<post_data>")]
+pub async fn post_token_endpoint(
+    config: &State<Config>,
+    tokens: &State<Tokens>,
+    post_data: Form<PostData>,
+) -> String {
+    let mutex = tokens.muted.lock().unwrap();
+    let token = mutex.get(&post_data.code);
+    match token {
+        Some(token) => token.to_string(),
+        _ => "".to_string(),
+    }
+}
+
+pub async fn token(
+    config: &Config,
+    client_id: String,
+    nonce: Option<String>,
+    account: Option<String>,
+) -> CoreTokenResponse {
     let rsa_pem = config.rsa_pem.clone();
 
     let id_token = CoreIdToken::new(
@@ -47,8 +86,11 @@ pub async fn token(config: &Config, client_id: String, nonce: Option<String>, ac
         // with one of the CoreJwsSigningAlgorithm::HmacSha* signing algorithms. When using an
         // HMAC-based signing algorithm, the UTF-8 representation of the client secret should
         // be used as the HMAC key.
-        &CoreRsaPrivateSigningKey::from_pem(&rsa_pem.unwrap_or_default(), Some(JsonWebKeyId::new(nonce.clone().unwrap_or_default())))
-            .expect("Invalid RSA private key"),
+        &CoreRsaPrivateSigningKey::from_pem(
+            &rsa_pem.unwrap_or_default(),
+            Some(JsonWebKeyId::new(nonce.clone().unwrap_or_default())),
+        )
+        .expect("Invalid RSA private key"),
         // Uses the RS256 signature algorithm. This crate supports any RS*, PS*, or HS*
         // signature algorithm.
         CoreJwsSigningAlgorithm::RsaSsaPkcs1V15Sha256,
