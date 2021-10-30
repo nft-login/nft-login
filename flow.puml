@@ -1,0 +1,15 @@
+@startuml id_token
+participant openidcdebugger
+participant nftlogin
+participant blockchain
+participant browser
+participant wallet
+openidcdebugger -> nftlogin : (client_id, redirect_uri, nonce)
+nftlogin -> browser: (client_id, redirect_uri, nonce)
+browser -> wallet: (nonce)
+wallet -> browser: (account, signature)
+browser -> nftlogin: (client_id, redirect_uri, nonce, account, signature)
+nftlogin -> blockchain: (account, nonce, signature)
+blockchain -> nftlogin: validity
+nftlogin -> openidcdebugger: (id_token)
+@enduml

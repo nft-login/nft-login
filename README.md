@@ -11,6 +11,9 @@ This ownership can be used to give access to any digital resource or service.
 
 ![Implicit Flow Diagram](https://s3.amazonaws.com/onelogin-screenshots/dev_site/images/oidc-implicit-flow.png)
 
+
+![id_token](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.github.com/chriamue/nft-login/main/flow.puml)
+
 - A nft will be created on the ethereum blockchain.
   The nft will be sold and the ownership will be transfered.
 
