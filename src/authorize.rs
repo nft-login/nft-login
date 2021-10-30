@@ -1,7 +1,9 @@
 use crate::config::Config;
 use crate::token::{token, Tokens};
+use crate::web3::validate;
 use openidconnect::TokenResponse;
 use rocket::response::Redirect;
+use rocket::http::Status;
 use rocket::State;
 use url::Url;
 use uuid::Uuid;
@@ -20,7 +22,7 @@ pub async fn authorize_endpoint(
     nonce: Option<String>,
     account: Option<String>,
     signature: Option<String>,
-) -> Redirect {
+) -> Result<Redirect, Status> {
     if account.is_none() {
         let mut url = Url::parse(&config.ext_hostname).unwrap();
         url.query_pairs_mut()
@@ -31,14 +33,19 @@ pub async fn authorize_endpoint(
             .append_pair("response_type", &response_type.unwrap_or_default())
             .append_pair("response_mode", &response_mode.unwrap_or_default())
             .append_pair("redirect_uri", &redirect_uri);
-        return Redirect::temporary(url.to_string());
+        return Ok(Redirect::temporary(url.to_string()));
     };
+
+    if !validate(account.clone().unwrap(), nonce.clone().unwrap(), signature.clone().unwrap(),None).await {
+        return Err(Status::Unauthorized);
+    }
 
     let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
     let code = Uuid::new_v4().to_string();
-    let token = token(config, client_id, nonce, account).await;
+    let token = token(config, client_id, nonce, account, signature.clone()).await;
     let id_token = token.id_token().unwrap().to_string();
+
     tokens
         .muted
         .lock()
@@ -69,5 +76,5 @@ pub async fn authorize_endpoint(
         _ => {}
     }
 
-    Redirect::temporary(redirect_uri.to_string())
+    Ok(Redirect::temporary(redirect_uri.to_string()))
 }

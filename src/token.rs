@@ -34,7 +34,7 @@ pub async fn token_endpoint(
     client_id: String,
     nonce: Option<String>,
 ) -> String {
-    let token = token(config, client_id, nonce, None).await;
+    let token = token(config, client_id, nonce, None, None).await;
     token.id_token().unwrap().to_string()
 }
 
@@ -57,6 +57,7 @@ pub async fn token(
     client_id: String,
     nonce: Option<String>,
     account: Option<String>,
+    signature: Option<String>
 ) -> CoreTokenResponse {
     let rsa_pem = config.rsa_pem.clone();
 

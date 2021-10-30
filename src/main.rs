@@ -16,6 +16,7 @@ use openidconnect::{JsonWebKeyId, PrivateSigningKey};
 mod authorize;
 mod config;
 mod token;
+mod web3;
 
 use authorize::authorize_endpoint;
 use config::{configuration, Config};
