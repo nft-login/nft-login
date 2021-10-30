@@ -12,22 +12,19 @@ use rocket::State;
 
 use crate::config::Config;
 
-#[get("/token")]
-pub async fn token_endpoint(config: &State<Config>) -> String {
-    let token = token(config).await;
+#[get("/token?<client_id>&<nonce>")]
+pub async fn token_endpoint(config: &State<Config>, client_id: String, nonce: Option<String>) -> String {
+    let token = token(config, client_id, nonce, None).await;
     token.id_token().unwrap().to_string()
 }
 
-pub async fn token(config: &Config) -> CoreTokenResponse {
+pub async fn token(config: &Config, client_id: String, nonce: Option<String>, account: Option<String>) -> CoreTokenResponse {
     let rsa_pem = config.rsa_pem.clone();
 
     let id_token = CoreIdToken::new(
         CoreIdTokenClaims::new(
-            // Specify the issuer URL for the OpenID Connect Provider.
             IssuerUrl::new(config.ext_hostname.clone()).unwrap(),
-            // The audience is usually a single entry with the client ID of the client for whom
-            // the ID token is intended. This is a required claim.
-            vec![Audience::new("client-id-123".to_string())],
+            vec![Audience::new(client_id)],
             // The ID token expiration is usually much shorter than that of the access or refresh
             // tokens issued to clients.
             Utc::now() + Duration::seconds(300),
@@ -37,13 +34,8 @@ pub async fn token(config: &Config) -> CoreTokenResponse {
             StandardClaims::new(
                 // Stable subject identifiers are recommended in place of e-mail addresses or other
                 // potentially unstable identifiers. This is the only required claim.
-                SubjectIdentifier::new("5f83e0ca-2b8e-4e8c-ba0a-f80fe9bc3632".to_string()),
-            )
-            // Optional: specify the user's e-mail address. This should only be provided if the
-            // client has been granted the 'profile' or 'email' scopes.
-            .set_email(Some(EndUserEmail::new("bob@example.com".to_string())))
-            // Optional: specify whether the provider has verified the user's e-mail address.
-            .set_email_verified(Some(false)),
+                SubjectIdentifier::new(account.unwrap_or_default()),
+            ),
             // OpenID Connect Providers may supply custom claims by providing a struct that
             // implements the AdditionalClaims trait. This requires manually using the
             // generic IdTokenClaims struct rather than the CoreIdTokenClaims type alias,
@@ -55,7 +47,7 @@ pub async fn token(config: &Config) -> CoreTokenResponse {
         // with one of the CoreJwsSigningAlgorithm::HmacSha* signing algorithms. When using an
         // HMAC-based signing algorithm, the UTF-8 representation of the client secret should
         // be used as the HMAC key.
-        &CoreRsaPrivateSigningKey::from_pem(&rsa_pem, Some(JsonWebKeyId::new("key1".to_string())))
+        &CoreRsaPrivateSigningKey::from_pem(&rsa_pem, Some(JsonWebKeyId::new(nonce.clone().unwrap_or_default())))
             .expect("Invalid RSA private key"),
         // Uses the RS256 signature algorithm. This crate supports any RS*, PS*, or HS*
         // signature algorithm.
@@ -72,7 +64,7 @@ pub async fn token(config: &Config) -> CoreTokenResponse {
     .unwrap();
 
     CoreTokenResponse::new(
-        AccessToken::new("some_secret".to_string()),
+        AccessToken::new(nonce.unwrap_or_default()),
         CoreTokenType::Bearer,
         CoreIdTokenFields::new(Some(id_token), EmptyExtraTokenFields {}),
     )

@@ -23,8 +23,8 @@ async function sign_message() {
   });
   console.log(payload);
   console.log(signature);
-  const query = queryString + "&account=" + account + "&signature=" + signature;
-  location.href = "authorize/" + query;
+  const query = queryString + "&account=" + encodeURIComponent(account) + "&signature=" + encodeURIComponent(signature);
+  location.href = "authorize" + query;
 }
 
 var sign_message_button = document.getElementById("sign_message_button");
