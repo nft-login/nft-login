@@ -1,4 +1,5 @@
 use rocket::response::content;
+use serde::Deserialize;
 use rocket::State;
 
 use openidconnect::core::{
@@ -10,9 +11,10 @@ use openidconnect::{
     TokenUrl,
 };
 
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
     pub ext_hostname: String,
-    pub rsa_pem: String,
+    pub rsa_pem: Option<String>,
 }
 
 #[get("/.well-known/openid-configuration")]

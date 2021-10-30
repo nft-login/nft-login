@@ -1,2 +1,12 @@
 [default]
 ident = "nft-login"
+
+[debug]
+port = 8000
+ext_hostname = "http://localhost:8000"
+
+[release]
+address = "0.0.0.0"
+port = 8080
+ext_hostname = "https://nft-login.example.com"
+rsa_pem = "../do-not-use.pem"

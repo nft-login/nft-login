@@ -28,7 +28,6 @@ pub async fn authorize_endpoint(
             .append_pair("nonce", &nonce.unwrap_or_default())
             .append_pair("response_type", &response_type.unwrap_or_default())
             .append_pair("redirect_uri", &redirect_uri);
-        println!("{:?}", url);
         return Redirect::temporary(url.to_string());
     };
 

@@ -47,12 +47,18 @@ fn jwk() -> String {
 
 #[launch]
 fn rocket() -> _ {
+    let rocket = rocket::build();
+    let figment = rocket.figment();
+    let config : Config = figment.extract().expect("config");
+
+    println!("{:?}", config);
+
     let config = Config {
-        ext_hostname: "http://localhost:8000".to_string(),
-        rsa_pem: include_str!("../do-not-use.pem").to_string(),
+        ext_hostname: config.ext_hostname.clone(),
+        rsa_pem: Some(include_str!("../do-not-use.pem").to_string()),
     };
 
-    rocket::build()
+    rocket
         .attach(static_resources_initializer!(
             "indexjs" => "static/index.js",
             "indexcss" => "static/index.css",

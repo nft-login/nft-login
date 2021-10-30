@@ -1,0 +1,10 @@
+version: "3.2"
+services:
+  provider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./Rocket.toml:/Rocket.toml
+    ports:
+      - "8080:8080"

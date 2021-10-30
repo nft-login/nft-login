@@ -5,7 +5,7 @@ use openidconnect::core::{
 };
 use openidconnect::TokenResponse;
 use openidconnect::{
-    AccessToken, Audience, EmptyAdditionalClaims, EmptyExtraTokenFields, EndUserEmail, IssuerUrl,
+    AccessToken, Audience, EmptyAdditionalClaims, EmptyExtraTokenFields, IssuerUrl,
     JsonWebKeyId, StandardClaims, SubjectIdentifier,
 };
 use rocket::State;
@@ -47,7 +47,7 @@ pub async fn token(config: &Config, client_id: String, nonce: Option<String>, ac
         // with one of the CoreJwsSigningAlgorithm::HmacSha* signing algorithms. When using an
         // HMAC-based signing algorithm, the UTF-8 representation of the client secret should
         // be used as the HMAC key.
-        &CoreRsaPrivateSigningKey::from_pem(&rsa_pem, Some(JsonWebKeyId::new(nonce.clone().unwrap_or_default())))
+        &CoreRsaPrivateSigningKey::from_pem(&rsa_pem.unwrap_or_default(), Some(JsonWebKeyId::new(nonce.clone().unwrap_or_default())))
             .expect("Invalid RSA private key"),
         // Uses the RS256 signature algorithm. This crate supports any RS*, PS*, or HS*
         // signature algorithm.
