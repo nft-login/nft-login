@@ -7,7 +7,7 @@ use url::Url;
 use uuid::Uuid;
 
 #[get(
-    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<nonce>&<account>&<signature>"
+    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>"
 )]
 pub async fn authorize_endpoint(
     config: &State<Config>,
@@ -16,6 +16,7 @@ pub async fn authorize_endpoint(
     redirect_uri: String,
     state: Option<String>,
     response_type: Option<String>,
+    response_mode: Option<String>,
     nonce: Option<String>,
     account: Option<String>,
     signature: Option<String>,
@@ -28,6 +29,7 @@ pub async fn authorize_endpoint(
             .append_pair("state", &state.unwrap_or_default())
             .append_pair("nonce", &nonce.unwrap_or_default())
             .append_pair("response_type", &response_type.unwrap_or_default())
+            .append_pair("response_mode", &response_mode.unwrap_or_default())
             .append_pair("redirect_uri", &redirect_uri);
         return Redirect::temporary(url.to_string());
     };
