@@ -18,3 +18,7 @@ This ownership can be used to give access to any digital resource or service.
   When the user visits the service, the user has to sign a proov for the owner address of the nft.
 
 - If the user could sign the proof, nft-login will return the nft as id in the jwt-token.
+
+## Test with oidcdebugger
+
+Visit https://oidcdebugger.com and use https://nft-login.chriamue.net/ as authorize uri.
