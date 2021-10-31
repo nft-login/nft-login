@@ -2,8 +2,8 @@ use crate::config::Config;
 use crate::token::{token, Tokens};
 use crate::web3::validate;
 use openidconnect::TokenResponse;
-use rocket::response::Redirect;
 use rocket::http::Status;
+use rocket::response::Redirect;
 use rocket::State;
 use url::Url;
 use uuid::Uuid;
@@ -36,7 +36,11 @@ pub async fn authorize_endpoint(
         return Ok(Redirect::temporary(url.to_string()));
     };
 
-    if !validate(account.clone().unwrap(), nonce.clone().unwrap(), signature.clone().unwrap(),None).await {
+    if !validate(
+        account.clone().unwrap(),
+        nonce.clone().unwrap(),
+        signature.clone().unwrap(),
+    ) {
         return Err(Status::Unauthorized);
     }
 

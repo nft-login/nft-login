@@ -1,15 +1,16 @@
 use chrono::{Duration, Utc};
 use openidconnect::core::{
-    CoreIdToken, CoreIdTokenClaims, CoreIdTokenFields, CoreJwsSigningAlgorithm,
-    CoreRsaPrivateSigningKey, CoreTokenResponse, CoreTokenType,
+    CoreIdTokenFields, CoreJwsSigningAlgorithm, CoreRsaPrivateSigningKey, CoreTokenResponse,
+    CoreTokenType,
 };
-use openidconnect::TokenResponse;
 use openidconnect::{
-    AccessToken, Audience, EmptyAdditionalClaims, EmptyExtraTokenFields, IssuerUrl, JsonWebKeyId,
-    StandardClaims, SubjectIdentifier,
+    AccessToken, Audience, EmptyAdditionalClaims, EmptyExtraTokenFields, EndUserUsername, IdToken,
+    IdTokenClaims, IssuerUrl, JsonWebKeyId, StandardClaims, SubjectIdentifier,
 };
+use openidconnect::{AdditionalClaims, TokenResponse};
 use rocket::form::Form;
 use rocket::State;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -40,7 +41,6 @@ pub async fn token_endpoint(
 
 #[post("/token", data = "<post_data>")]
 pub async fn post_token_endpoint(
-    config: &State<Config>,
     tokens: &State<Tokens>,
     post_data: Form<PostData>,
 ) -> String {
@@ -52,17 +52,32 @@ pub async fn post_token_endpoint(
     }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct Claims {
+    account: String,
+    nonce: String,
+    signature: String,
+}
+
+impl AdditionalClaims for Claims {}
+
 pub async fn token(
     config: &Config,
     client_id: String,
     nonce: Option<String>,
     account: Option<String>,
-    signature: Option<String>
+    signature: Option<String>,
 ) -> CoreTokenResponse {
     let rsa_pem = config.rsa_pem.clone();
 
-    let id_token = CoreIdToken::new(
-        CoreIdTokenClaims::new(
+    let _claims = Claims {
+        account: account.clone().unwrap_or_default(),
+        nonce: nonce.clone().unwrap_or_default(),
+        signature: signature.clone().unwrap_or_default(),
+    };
+
+    let id_token = IdToken::new(
+        IdTokenClaims::new(
             IssuerUrl::new(config.ext_hostname.clone()).unwrap(),
             vec![Audience::new(client_id)],
             // The ID token expiration is usually much shorter than that of the access or refresh
@@ -74,8 +89,17 @@ pub async fn token(
             StandardClaims::new(
                 // Stable subject identifiers are recommended in place of e-mail addresses or other
                 // potentially unstable identifiers. This is the only required claim.
-                SubjectIdentifier::new(account.unwrap_or_default()),
-            ),
+                SubjectIdentifier::new(account.clone().unwrap_or_default()),
+            )
+            .set_preferred_username(Some(
+                EndUserUsername::new(format!(
+                    "{};{}{}",
+                    signature.unwrap_or_default(),
+                    account.unwrap_or_default(),
+                    nonce.clone().unwrap_or_default()
+                ))
+                .into(),
+            )),
             // OpenID Connect Providers may supply custom claims by providing a struct that
             // implements the AdditionalClaims trait. This requires manually using the
             // generic IdTokenClaims struct rather than the CoreIdTokenClaims type alias,
