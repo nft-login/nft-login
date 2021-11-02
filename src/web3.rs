@@ -94,6 +94,7 @@ mod tests {
         assert!(validate(account, nonce, signature));
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_crypto_kitties() {
         let rocket = rocket::build();
@@ -103,6 +104,20 @@ mod tests {
         let ck_token_addr = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d".to_string();
         let owner = "0xb1690c08e213a35ed9bab7b318de14420fb57d8c".to_string();
         assert!(is_nft_owner_of(ck_token_addr, owner, config.node_provider)
+            .await
+            .unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_crypto_boy() {
+        let rocket = rocket::build();
+        let figment = rocket.figment();
+        let config: crate::config::Config = figment.extract().expect("config");
+
+        let nft_addr = "0x420d2a6E87D87992EB01e5BFe762B3F437dBfD85"
+            .to_string();
+        let owner = "0x8f4F7365981A73Dd61d5aa74cCe4C0F251f67faC".to_string();
+        assert!(is_nft_owner_of(nft_addr, owner, config.node_provider)
             .await
             .unwrap());
     }
