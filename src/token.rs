@@ -4,8 +4,8 @@ use openidconnect::core::{
     CoreJwsSigningAlgorithm, CoreRsaPrivateSigningKey, CoreTokenType,
 };
 use openidconnect::{
-    AccessToken, AdditionalClaims, Audience, EmptyExtraTokenFields, EndUserUsername, IdToken,
-    IdTokenClaims, IdTokenFields, IssuerUrl, JsonWebKeyId, StandardClaims, StandardTokenResponse,
+    AccessToken, AdditionalClaims, Audience, EmptyExtraTokenFields, IdToken, IdTokenClaims,
+    IdTokenFields, IssuerUrl, JsonWebKeyId, StandardClaims, StandardTokenResponse,
     SubjectIdentifier, TokenResponse,
 };
 use rocket::form::Form;
@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use crate::config::Config;
+use crate::web3;
 
 pub struct Tokens {
     pub muted: Arc<Mutex<HashMap<String, String>>>,
@@ -35,7 +36,7 @@ pub async fn token_endpoint(
     client_id: String,
     nonce: Option<String>,
 ) -> String {
-    let token = token(config, client_id, nonce, None, None).await;
+    let token = token(config, client_id, nonce, None, None, None).await;
     token.id_token().unwrap().to_string()
 }
 
@@ -75,13 +76,38 @@ pub async fn token(
     nonce: Option<String>,
     account: Option<String>,
     signature: Option<String>,
+    node_provider: Option<String>,
 ) -> NftTokenResponse {
     let rsa_pem = config.rsa_pem.clone();
 
-    let claims = Claims {
-        account: account.clone().unwrap_or_default(),
-        nonce: nonce.clone().unwrap_or_default(),
-        signature: signature.clone().unwrap_or_default(),
+    let claims = match node_provider {
+        Some(node_provider) => {
+            let is_owner = web3::is_nft_owner_of(
+                client_id.clone(),
+                account.clone().unwrap_or_default(),
+                node_provider,
+            )
+            .await
+            .unwrap();
+            if is_owner {
+                Claims {
+                    account: account.clone().unwrap_or_default(),
+                    nonce: nonce.clone().unwrap_or_default(),
+                    signature: signature.clone().unwrap_or_default(),
+                }
+            } else {
+                Claims {
+                    account: "".to_string(),
+                    nonce: nonce.clone().unwrap_or_default(),
+                    signature: "".to_string(),
+                }
+            }
+        }
+        None => Claims {
+            account: account.clone().unwrap_or_default(),
+            nonce: nonce.clone().unwrap_or_default(),
+            signature: signature.clone().unwrap_or_default(),
+        },
     };
 
     let id_token = IdToken::new(

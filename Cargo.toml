@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.44"
 chrono = "0.4"
+hex = "0.4.3"
 openidconnect = "2.1"
 rocket = "0.5.0-rc.1"
 rocket-include-static-resources = { version = "0.10.0", features=["cache"] }
@@ -13,5 +14,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 url = "2.2"
-web3 = { version = "0.17.0", default-features = false, features = ["signing"] }
-hex = "0.4.3"
+web3 = { version = "0.17.0", default-features = false, features = ["signing", "http-tls"] }
+tokio = "1.13"
+
+[dev-dependencies]
+tokio-test = "0.4"

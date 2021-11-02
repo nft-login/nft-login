@@ -53,14 +53,11 @@ fn jwk() -> String {
 fn rocket() -> _ {
     let rocket = rocket::build();
     let figment = rocket.figment();
-    let config: Config = figment.extract().expect("config");
+    let mut config: Config = figment.extract().expect("config");
 
     println!("{:?}", config);
 
-    let config = Config {
-        ext_hostname: config.ext_hostname.clone(),
-        rsa_pem: Some(include_str!("../do-not-use.pem").to_string()),
-    };
+    config.rsa_pem = Some(include_str!("../do-not-use.pem").to_string());
 
     let tokens: Tokens = Tokens {
         muted: Arc::new(Mutex::new(HashMap::new())),

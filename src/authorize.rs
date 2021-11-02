@@ -47,7 +47,15 @@ pub async fn authorize_endpoint(
     let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
     let code = Uuid::new_v4().to_string();
-    let token = token(config, client_id, nonce, account, signature.clone()).await;
+    let token = token(
+        config,
+        client_id,
+        nonce,
+        account,
+        signature.clone(),
+        Some(config.node_provider.to_string()),
+    )
+    .await;
     let id_token = token.id_token().unwrap().to_string();
 
     tokens

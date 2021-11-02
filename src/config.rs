@@ -14,6 +14,7 @@ use openidconnect::{
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
     pub ext_hostname: String,
+    pub node_provider: String,
     pub rsa_pem: Option<String>,
 }
 

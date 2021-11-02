@@ -1,5 +1,6 @@
 [default]
 ident = "nft-login"
+node_provider = "https://cloudflare-eth.com"
 
 [debug]
 port = 8000

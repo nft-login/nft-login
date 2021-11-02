@@ -25,3 +25,5 @@ This ownership can be used to give access to any digital resource or service.
 ## Test with oidcdebugger
 
 Visit https://oidcdebugger.com and use https://nft-login.chriamue.net/ as authorize uri.
+
+Use as client id the nft contract address `0x06012c8cf97BEaD5deAe237070F9587f8E7A266d`.
