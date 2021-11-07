@@ -5,20 +5,23 @@ use openidconnect::core::{
 };
 use openidconnect::{
     AccessToken, AdditionalClaims, Audience, EmptyExtraTokenFields, EndUserEmail, EndUserName,
-    IdToken, IdTokenClaims, IdTokenFields, IssuerUrl, JsonWebKeyId, LocalizedClaim, StandardClaims,
-    StandardTokenResponse, SubjectIdentifier, TokenResponse,
+    IdToken, IdTokenClaims, IdTokenFields, IssuerUrl, JsonWebKeyId, LocalizedClaim,
+    StandardClaims, StandardTokenResponse, SubjectIdentifier, TokenResponse,
 };
 use rocket::form::Form;
+use rocket::response::status::NotFound;
+use rocket::serde::json::Json;
 use rocket::State;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use uuid::Uuid;
 
 use crate::config::Config;
 use crate::web3;
 
 pub struct Tokens {
-    pub muted: Arc<Mutex<HashMap<String, String>>>,
+    pub muted: Arc<Mutex<HashMap<String, NftTokenResponse>>>,
 }
 
 #[derive(FromForm)]
@@ -41,16 +44,19 @@ pub async fn token_endpoint(
 }
 
 #[post("/token", data = "<post_data>")]
-pub async fn post_token_endpoint(tokens: &State<Tokens>, post_data: Form<PostData>) -> String {
+pub async fn post_token_endpoint(
+    tokens: &State<Tokens>,
+    post_data: Form<PostData>,
+) -> Result<Json<NftTokenResponse>, NotFound<String>> {
     let mutex = tokens.muted.lock().unwrap();
     let token = mutex.get(&post_data.code);
     match token {
-        Some(token) => token.to_string(),
-        _ => "".to_string(),
+        Some(token) => Ok(Json(token.clone())),
+        _ => Err(NotFound("Invalid Code".to_string())),
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub account: String,
     pub nonce: String,
@@ -110,6 +116,8 @@ pub async fn token(
         },
     };
 
+    let access_token = AccessToken::new(Uuid::new_v4().to_string());
+
     let mut localized_claim = LocalizedClaim::new();
     localized_claim.insert(None, EndUserName::new("anonymous".to_string()));
 
@@ -141,7 +149,7 @@ pub async fn token(
         // When returning the ID token alongside an access token (e.g., in the Authorization Code
         // flow), it is recommended to pass the access token here to set the `at_hash` claim
         // automatically.
-        None,
+        Some(&access_token),
         // When returning the ID token alongside an authorization code (e.g., in the implicit
         // flow), it is recommended to pass the authorization code here to set the `c_hash` claim
         // automatically.
@@ -150,7 +158,7 @@ pub async fn token(
     .unwrap();
 
     NftTokenResponse::new(
-        AccessToken::new(nonce.unwrap_or_default()),
+        access_token,
         CoreTokenType::Bearer,
         NftIdTokenFields::new(Some(id_token), EmptyExtraTokenFields {}),
     )

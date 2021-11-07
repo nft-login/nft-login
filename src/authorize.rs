@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::token::{token, Tokens};
 use crate::web3::validate;
-use openidconnect::TokenResponse;
+use openidconnect::{AuthorizationCode, TokenResponse};
 use rocket::http::Status;
 use rocket::response::Redirect;
 use rocket::State;
@@ -46,7 +46,6 @@ pub async fn authorize_endpoint(
 
     let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
-    let code = Uuid::new_v4().to_string();
     let token = token(
         config,
         client_id,
@@ -56,17 +55,22 @@ pub async fn authorize_endpoint(
         Some(config.node_provider.to_string()),
     )
     .await;
+
+    let code = AuthorizationCode::new(Uuid::new_v4().to_string());
+
     let id_token = token.id_token().unwrap().to_string();
 
     tokens
         .muted
         .lock()
         .unwrap()
-        .insert(code.clone(), id_token.clone());
+        .insert(code.secret().clone(), token);
 
     if let Some(response_type) = response_type {
         if response_type.contains("code") {
-            redirect_uri.query_pairs_mut().append_pair("code", &code);
+            redirect_uri
+                .query_pairs_mut()
+                .append_pair("code", &code.secret());
         }
         if response_type.contains("id_token") {
             redirect_uri
@@ -78,7 +82,9 @@ pub async fn authorize_endpoint(
                 .append_pair("id_token", &id_token);
         }
     } else {
-        redirect_uri.query_pairs_mut().append_pair("token", &code);
+        redirect_uri
+            .query_pairs_mut()
+            .append_pair("code", &code.secret());
     };
 
     match state {

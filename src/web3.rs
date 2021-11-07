@@ -87,9 +87,9 @@ mod tests {
 
     #[test]
     fn test_validate() {
-        let account = "0x63f9a92d8d61b48a9fff8d58080425a3012d05c8".to_string();
-        let nonce = "igwyk4r1o7o".to_string();
-        let signature = "0x382a3e04daf88f322730f6a2972475fc5646ea8c4a7f3b5e83a90b10ba08a7364cd2f55348f2b6d210fbed7fc485abf19ecb2f3967e410d6349dd7dd1d4487751b".to_string();
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
 
         assert!(validate(account, nonce, signature));
     }

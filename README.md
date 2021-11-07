@@ -34,4 +34,8 @@ This provider is a bridge between both worlds. The access is given based on the 
 
 Visit https://oidcdebugger.com and use https://nft-login.chriamue.net/ as authorize uri.
 
-Use as client id the nft contract address `0x06012c8cf97BEaD5deAe237070F9587f8E7A266d`.
+Use as client id the nft contract address `0x420d2a6E87D87992EB01e5BFe762B3F437dBfD85`.
+
+Connect with an account on kovan.
+
+You must own a nft on https://devpavan04.github.io/cryptoboys-nft-marketplace/#/.
