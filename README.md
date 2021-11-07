@@ -7,6 +7,14 @@ OIDC login for wallets owning an nft.
 Non fungible tokens are a proof for a digital ownership.
 This ownership can be used to give access to any digital resource or service.
 
+## What is it good for?
+
+![NFT Login Story](docs/nft-login-story.png)
+
+Todays online services access are mostly based on identities and not the ownership of an access authorisation.
+
+This provider is a bridge between both worlds. The access is given based on the ownership of a nft.
+
 ## Functionality
 
 ![Implicit Flow Diagram](https://s3.amazonaws.com/onelogin-screenshots/dev_site/images/oidc-implicit-flow.png)
