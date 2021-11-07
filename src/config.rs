@@ -43,7 +43,6 @@ pub fn configuration(config: &State<Config>) -> content::Json<String> {
     .set_scopes_supported(Some(vec![
         Scope::new("openid".to_string()),
         Scope::new("email".to_string()),
-        Scope::new("profile".to_string()),
     ]))
     .set_claims_supported(Some(vec![
         CoreClaimName::new("sub".to_string()),
@@ -54,10 +53,6 @@ pub fn configuration(config: &State<Config>) -> content::Json<String> {
         CoreClaimName::new("iat".to_string()),
         CoreClaimName::new("iss".to_string()),
         CoreClaimName::new("name".to_string()),
-        CoreClaimName::new("given_name".to_string()),
-        CoreClaimName::new("family_name".to_string()),
-        CoreClaimName::new("picture".to_string()),
-        CoreClaimName::new("locale".to_string()),
     ]));
 
     content::Json(serde_json::to_string(&provider_metadata).unwrap())
