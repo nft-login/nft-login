@@ -7,7 +7,7 @@ use web3::{
 };
 
 pub fn validate(account: String, nonce: String, signature: String) -> bool {
-    let message = eth_message(format!("{}{}", account, nonce));
+    let message = eth_message(format!("{};{}", account, nonce));
     let signature = format!("{}", &signature[2..]);
     let signature = hex::decode(signature).unwrap();
     let pubkey0 = recover(&message, &signature[..64], 0);

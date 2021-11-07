@@ -15,7 +15,7 @@ async function sign_message() {
     account,
     nonce,
   };
-  const message = account+nonce;//Web3.utils.keccak256(account + nonce);
+  const message = "" + account + ";" + encodeURIComponent(nonce);
   console.log(message);
   var signature = await ethereum.request({
     method: "personal_sign",
@@ -24,7 +24,12 @@ async function sign_message() {
   console.log(payload);
   console.log(message);
   console.log(signature);
-  const query = queryString + "&account=" + encodeURIComponent(account) + "&signature=" + encodeURIComponent(signature);
+  const query =
+    queryString +
+    "&account=" +
+    encodeURIComponent(account) +
+    "&signature=" +
+    encodeURIComponent(signature);
   location.href = "authorize" + query;
 }
 
