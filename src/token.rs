@@ -4,9 +4,9 @@ use openidconnect::core::{
     CoreJwsSigningAlgorithm, CoreRsaPrivateSigningKey, CoreTokenType,
 };
 use openidconnect::{
-    AccessToken, AdditionalClaims, Audience, EmptyExtraTokenFields, IdToken, IdTokenClaims,
-    IdTokenFields, IssuerUrl, JsonWebKeyId, StandardClaims, StandardTokenResponse,
-    SubjectIdentifier, TokenResponse,
+    AccessToken, AdditionalClaims, Audience, EmptyExtraTokenFields, EndUserEmail, EndUserName,
+    IdToken, IdTokenClaims, IdTokenFields, IssuerUrl, JsonWebKeyId, LocalizedClaim, StandardClaims,
+    StandardTokenResponse, SubjectIdentifier, TokenResponse,
 };
 use rocket::form::Form;
 use rocket::State;
@@ -110,13 +110,19 @@ pub async fn token(
         },
     };
 
+    let mut localized_claim = LocalizedClaim::new();
+    localized_claim.insert(None, EndUserName::new("anonymous".to_string()));
+
     let id_token = IdToken::new(
         IdTokenClaims::new(
             IssuerUrl::new(config.ext_hostname.clone()).unwrap(),
             vec![Audience::new(client_id)],
             Utc::now() + Duration::seconds(300),
             Utc::now(),
-            StandardClaims::new(SubjectIdentifier::new(account.clone().unwrap_or_default())),
+            StandardClaims::new(SubjectIdentifier::new(account.clone().unwrap_or_default()))
+                .set_email(Some(EndUserEmail::new("no-reply@example.com".to_string())))
+                .set_email_verified(Some(false))
+                .set_name(Some(localized_claim)),
             claims,
         ),
         // The private key used for signing the ID token. For confidential clients (those able
