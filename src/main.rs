@@ -23,9 +23,12 @@ mod token;
 mod userinfo;
 mod web3;
 
-use authorize::authorize_endpoint;
-use config::{configuration, Config};
-use token::{post_token_endpoint, token_endpoint, Tokens};
+use authorize::{authorize_endpoint, default_authorize_endpoint};
+use config::{configuration, default_configuration, Config};
+use token::{
+    default_post_token_endpoint, default_token_endpoint, post_token_endpoint, token_endpoint,
+    Tokens,
+};
 use userinfo::{options_userinfo_endpoint, userinfo_endpoint};
 
 cached_static_response_handler! {
@@ -35,14 +38,29 @@ cached_static_response_handler! {
 }
 
 #[get("/")]
-fn index(
+fn default_index(
     static_resources: &State<StaticContextManager>,
     etag_if_none_match: EtagIfNoneMatch,
 ) -> StaticResponse {
     static_resources.build(&etag_if_none_match, "index")
 }
 
+#[allow(unused_variables)]
+#[get("/<realm>")]
+fn index(
+    static_resources: &State<StaticContextManager>,
+    etag_if_none_match: EtagIfNoneMatch,
+    realm: String,
+) -> StaticResponse {
+    static_resources.build(&etag_if_none_match, "index")
+}
+
 #[get("/jwk")]
+fn default_jwk() -> String {
+    jwk()
+}
+
+#[get("/../jwk")]
 fn jwk() -> String {
     let rsa_pem = include_str!("../do-not-use.pem");
     let jwks = CoreJsonWebKeySet::new(vec![CoreRsaPrivateSigningKey::from_pem(
@@ -109,13 +127,19 @@ fn rocket() -> _ {
             "/",
             routes![
                 index,
+                default_index,
                 authorize_endpoint,
+                default_authorize_endpoint,
                 token_endpoint,
+                default_token_endpoint,
                 userinfo_endpoint,
                 options_userinfo_endpoint,
                 post_token_endpoint,
+                default_post_token_endpoint,
                 configuration,
-                jwk
+                default_configuration,
+                jwk,
+                default_jwk
             ],
         )
         .manage(config)

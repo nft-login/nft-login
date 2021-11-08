@@ -1,6 +1,7 @@
 use rocket::response::content;
 use rocket::State;
 use serde::Deserialize;
+use std::collections::HashMap;
 
 use openidconnect::core::{
     CoreClaimName, CoreJwsSigningAlgorithm, CoreProviderMetadata, CoreResponseType,
@@ -14,17 +15,22 @@ use openidconnect::{
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
     pub ext_hostname: String,
-    pub node_provider: String,
+    pub node_provider: HashMap<String, String>,
     pub rsa_pem: Option<String>,
 }
 
 #[get("/.well-known/openid-configuration")]
-pub fn configuration(config: &State<Config>) -> content::Json<String> {
+pub fn default_configuration(config: &State<Config>) -> content::Json<String> {
+    configuration(config, "default".into())
+}
+
+#[get("/<realm>/.well-known/openid-configuration")]
+pub fn configuration(config: &State<Config>, realm: String) -> content::Json<String> {
     let provider_metadata = CoreProviderMetadata::new(
-        IssuerUrl::new(config.ext_hostname.to_string()).unwrap(),
-        AuthUrl::new(format!("{}/authorize", config.ext_hostname).to_string()).unwrap(),
+        IssuerUrl::new(format!("{}/{}", config.ext_hostname, realm).to_string()).unwrap(),
+        AuthUrl::new(format!("{}/{}/authorize", config.ext_hostname, realm).to_string()).unwrap(),
         JsonWebKeySetUrl::new(
-            format!("{}/jwk", config.ext_hostname)
+            format!("{}/{}/jwk", config.ext_hostname, realm)
                 .to_string()
                 .to_string(),
         )
@@ -38,10 +44,11 @@ pub fn configuration(config: &State<Config>) -> content::Json<String> {
         EmptyAdditionalProviderMetadata {},
     )
     .set_token_endpoint(Some(
-        TokenUrl::new(format!("{}/token", config.ext_hostname).to_string()).unwrap(),
+        TokenUrl::new(format!("{}/{}/token", config.ext_hostname, realm).to_string()).unwrap(),
     ))
     .set_userinfo_endpoint(Some(
-        UserInfoUrl::new(format!("{}/userinfo", config.ext_hostname).to_string()).unwrap(),
+        UserInfoUrl::new(format!("{}/{}/userinfo", config.ext_hostname, realm).to_string())
+            .unwrap(),
     ))
     .set_scopes_supported(Some(vec![
         Scope::new("openid".to_string()),

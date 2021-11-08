@@ -39,3 +39,11 @@ Use as client id the nft contract address `0x420d2a6E87D87992EB01e5BFe762B3F437d
 Connect with an account on kovan.
 
 You must own a nft on https://devpavan04.github.io/cryptoboys-nft-marketplace/#/.
+
+## List of supported chains
+
+| Chain             | Authorize URI           | Contract to use as Client ID               | Marketplace to get NFT                                   | Faucet                                                                                        |   |
+|-------------------|-------------------------|--------------------------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------|---|
+| Kovan             | / or /default/authorize | 0x420d2a6E87D87992EB01e5BFe762B3F437dBfD85 | https://devpavan04.github.io/cryptoboys-nft-marketplace/ | https://ethdrop.dev/                                                                          |   |
+| OKExChain Testnet | /okt/authorize          | 0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4 | https://nft-login.github.io/okt-nft-marketplace/         | https://okexchain-docs.readthedocs.io/en/latest/developers/quick-start.html#get-testnet-token |   |
+|                   |                         |                                            |                                                          |                                                                                               |   |

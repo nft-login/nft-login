@@ -32,6 +32,14 @@ pub struct PostData {
 }
 
 #[get("/token?<code>")]
+pub async fn default_token_endpoint(
+    tokens: &State<Tokens>,
+    code: String,
+) -> Result<Json<NftTokenResponse>, NotFound<String>> {
+    token_endpoint(tokens, code).await
+}
+
+#[get("/../token?<code>")]
 pub async fn token_endpoint(
     tokens: &State<Tokens>,
     code: String,
@@ -47,6 +55,14 @@ pub async fn token_endpoint(
 }
 
 #[post("/token", data = "<post_data>")]
+pub async fn default_post_token_endpoint(
+    tokens: &State<Tokens>,
+    post_data: Form<PostData>,
+) -> Result<Json<NftTokenResponse>, NotFound<String>> {
+    default_token_endpoint(tokens, post_data.code.clone()).await
+}
+
+#[post("/../token", data = "<post_data>")]
 pub async fn post_token_endpoint(
     tokens: &State<Tokens>,
     post_data: Form<PostData>,

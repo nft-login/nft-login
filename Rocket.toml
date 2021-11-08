@@ -1,6 +1,11 @@
 [default]
 ident = "nft-login"
-node_provider = "https://cloudflare-eth.com"
+[default.node_provider]
+default = "https://kovan.infura.io/v3/43"
+kovan = "https://kovan.infura.io/v3/43"
+okt = "https://exchaintestrpc.okex.org"
+clv = "https://rpc-3.clover.finance"
+main = "https://cloudflare-eth.com"
 
 [debug]
 port = 8000

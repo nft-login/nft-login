@@ -10,12 +10,13 @@ use url::Url;
 use uuid::Uuid;
 
 #[get(
-    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>"
+    "/<realm>/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>"
 )]
 pub async fn authorize_endpoint(
     config: &State<Config>,
     claims: &State<ClaimsMutex>,
     tokens: &State<Tokens>,
+    realm: String,
     client_id: String,
     redirect_uri: String,
     state: Option<String>,
@@ -26,7 +27,7 @@ pub async fn authorize_endpoint(
     signature: Option<String>,
 ) -> Result<Redirect, Status> {
     if account.is_none() {
-        let mut url = Url::parse(&config.ext_hostname).unwrap();
+        let mut url = Url::parse(&format!("{}/{}", config.ext_hostname, realm)).unwrap();
         url.query_pairs_mut()
             .clear()
             .append_pair("client_id", &client_id)
@@ -34,7 +35,8 @@ pub async fn authorize_endpoint(
             .append_pair("nonce", &nonce.unwrap_or_default())
             .append_pair("response_type", &response_type.unwrap_or_default())
             .append_pair("response_mode", &response_mode.unwrap_or_default())
-            .append_pair("redirect_uri", &redirect_uri);
+            .append_pair("redirect_uri", &redirect_uri)
+            .append_pair("realm", &realm);
         return Ok(Redirect::temporary(url.to_string()));
     };
 
@@ -46,10 +48,12 @@ pub async fn authorize_endpoint(
         return Err(Status::Unauthorized);
     }
 
+    let node_provider = config.node_provider.get(&realm).unwrap();
+
     if !is_nft_owner_of(
         client_id.clone(),
         account.clone().unwrap_or_default(),
-        config.node_provider.to_string(),
+        node_provider.clone(),
     )
     .await
     .unwrap()
@@ -135,4 +139,38 @@ pub async fn authorize_endpoint(
     }
 
     Ok(Redirect::temporary(redirect_uri.to_string()))
+}
+
+#[get(
+    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<realm>"
+)]
+pub async fn default_authorize_endpoint(
+    config: &State<Config>,
+    claims: &State<ClaimsMutex>,
+    tokens: &State<Tokens>,
+    realm: Option<String>,
+    client_id: String,
+    redirect_uri: String,
+    state: Option<String>,
+    response_type: Option<String>,
+    response_mode: Option<String>,
+    nonce: Option<String>,
+    account: Option<String>,
+    signature: Option<String>,
+) -> Result<Redirect, Status> {
+    authorize_endpoint(
+        config,
+        claims,
+        tokens,
+        realm.unwrap_or("default".into()),
+        client_id,
+        redirect_uri,
+        state,
+        response_type,
+        response_mode,
+        nonce,
+        account,
+        signature,
+    )
+    .await
 }
