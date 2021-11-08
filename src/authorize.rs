@@ -86,6 +86,7 @@ pub async fn authorize_endpoint(
 
     let token = token(
         config,
+        realm,
         client_id,
         nonce,
         standard_claims,

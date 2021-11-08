@@ -87,6 +87,7 @@ pub type NftTokenResponse = StandardTokenResponse<NftIdTokenFields, CoreTokenTyp
 
 pub async fn token(
     config: &Config,
+    realm: String,
     client_id: String,
     nonce: Option<String>,
     standard_claims: StandardClaims<CoreGenderClaim>,
@@ -97,7 +98,7 @@ pub async fn token(
     let rsa_pem = config.rsa_pem.clone();
     let id_token = IdToken::new(
         IdTokenClaims::new(
-            IssuerUrl::new(config.ext_hostname.clone()).unwrap(),
+            IssuerUrl::new(format!("{}/{}", config.ext_hostname, realm)).unwrap(),
             vec![Audience::new(client_id)],
             Utc::now() + Duration::seconds(300),
             Utc::now(),
