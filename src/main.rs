@@ -4,12 +4,14 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_include_static_resources;
 
+use claims::ClaimsMutex;
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::Header;
+use rocket::State;
+use rocket::{Request, Response};
+use rocket_include_static_resources::{EtagIfNoneMatch, StaticContextManager, StaticResponse};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-
-use claims::ClaimsMutex;
-use rocket::State;
-use rocket_include_static_resources::{EtagIfNoneMatch, StaticContextManager, StaticResponse};
 
 use openidconnect::core::{CoreJsonWebKeySet, CoreRsaPrivateSigningKey};
 use openidconnect::{JsonWebKeyId, PrivateSigningKey};
@@ -53,6 +55,25 @@ fn jwk() -> String {
     serde_json::to_string(&jwks).unwrap()
 }
 
+pub struct CORS;
+
+#[rocket::async_trait]
+impl Fairing for CORS {
+    fn info(&self) -> Info {
+        Info {
+            name: "Attaching CORS headers to responses",
+            kind: Kind::Response
+        }
+    }
+
+    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+    }
+}
+
 #[launch]
 fn rocket() -> _ {
     let rocket = rocket::build();
@@ -79,6 +100,7 @@ fn rocket() -> _ {
             "indexcss" => "static/index.css",
             "index" => ("static", "index.html"),
         ))
+        .attach(CORS)
         .mount("/", routes![cached_indexjs, cached_indexcss])
         .mount(
             "/",
