@@ -8,7 +8,7 @@ use openidconnect::core::{
 };
 use openidconnect::{
     AuthUrl, EmptyAdditionalProviderMetadata, IssuerUrl, JsonWebKeySetUrl, ResponseTypes, Scope,
-    TokenUrl,
+    TokenUrl, UserInfoUrl,
 };
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -39,6 +39,9 @@ pub fn configuration(config: &State<Config>) -> content::Json<String> {
     )
     .set_token_endpoint(Some(
         TokenUrl::new(format!("{}/token", config.ext_hostname).to_string()).unwrap(),
+    ))
+    .set_userinfo_endpoint(Some(
+        UserInfoUrl::new(format!("{}/userinfo", config.ext_hostname).to_string()).unwrap(),
     ))
     .set_scopes_supported(Some(vec![
         Scope::new("openid".to_string()),

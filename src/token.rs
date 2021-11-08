@@ -34,8 +34,8 @@ pub struct PostData {
 #[get("/token?<code>")]
 pub async fn token_endpoint(
     tokens: &State<Tokens>,
-    code: String
-)  -> Result<Json<NftTokenResponse>, NotFound<String>> {
+    code: String,
+) -> Result<Json<NftTokenResponse>, NotFound<String>> {
     let mutex = tokens.bearer.lock().unwrap();
     let access_token = mutex.get(&code).unwrap();
     let mutex = tokens.muted.lock().unwrap();
