@@ -26,7 +26,7 @@ mod web3;
 use authorize::authorize_endpoint;
 use config::{configuration, Config};
 use token::{post_token_endpoint, token_endpoint, Tokens};
-use userinfo::userinfo_endpoint;
+use userinfo::{options_userinfo_endpoint, userinfo_endpoint};
 
 cached_static_response_handler! {
     259_200;
@@ -62,13 +62,16 @@ impl Fairing for CORS {
     fn info(&self) -> Info {
         Info {
             name: "Attaching CORS headers to responses",
-            kind: Kind::Response
+            kind: Kind::Response,
         }
     }
 
     async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
+        response.set_header(Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
@@ -109,6 +112,7 @@ fn rocket() -> _ {
                 authorize_endpoint,
                 token_endpoint,
                 userinfo_endpoint,
+                options_userinfo_endpoint,
                 post_token_endpoint,
                 configuration,
                 jwk
