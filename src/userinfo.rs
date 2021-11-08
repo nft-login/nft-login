@@ -27,9 +27,19 @@ impl<'r> FromRequest<'r> for Bearer {
 }
 
 #[get("/userinfo")]
+pub async fn default_userinfo_endpoint(
+    claims: &State<ClaimsMutex>,
+    bearer: Bearer,
+) -> Result<Json<UserInfoClaims<Claims, CoreGenderClaim>>, NotFound<String>> {
+    userinfo_endpoint(claims, bearer, "default".into()).await
+}
+
+#[allow(unused_variables)]
+#[get("/<realm>/userinfo")]
 pub async fn userinfo_endpoint(
     claims: &State<ClaimsMutex>,
     bearer: Bearer,
+    realm: String,
 ) -> Result<Json<UserInfoClaims<Claims, CoreGenderClaim>>, NotFound<String>> {
     println!("{:?}", bearer);
 
@@ -47,4 +57,8 @@ pub async fn userinfo_endpoint(
 }
 
 #[options("/userinfo")]
-pub async fn options_userinfo_endpoint() {}
+pub async fn default_options_userinfo_endpoint() {}
+
+#[allow(unused_variables)]
+#[options("/<realm>/userinfo")]
+pub async fn options_userinfo_endpoint(realm: String) {}

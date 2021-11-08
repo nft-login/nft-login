@@ -29,7 +29,10 @@ use token::{
     default_post_token_endpoint, default_token_endpoint, post_token_endpoint, token_endpoint,
     Tokens,
 };
-use userinfo::{options_userinfo_endpoint, userinfo_endpoint};
+use userinfo::{
+    default_options_userinfo_endpoint, default_userinfo_endpoint, options_userinfo_endpoint,
+    userinfo_endpoint,
+};
 
 cached_static_response_handler! {
     259_200;
@@ -133,7 +136,9 @@ fn rocket() -> _ {
                 token_endpoint,
                 default_token_endpoint,
                 userinfo_endpoint,
+                default_userinfo_endpoint,
                 options_userinfo_endpoint,
+                default_options_userinfo_endpoint,
                 post_token_endpoint,
                 default_post_token_endpoint,
                 configuration,
