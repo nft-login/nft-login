@@ -7,6 +7,7 @@ extern crate rocket_include_static_resources;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+use claims::ClaimsMutex;
 use rocket::State;
 use rocket_include_static_resources::{EtagIfNoneMatch, StaticContextManager, StaticResponse};
 
@@ -14,13 +15,16 @@ use openidconnect::core::{CoreJsonWebKeySet, CoreRsaPrivateSigningKey};
 use openidconnect::{JsonWebKeyId, PrivateSigningKey};
 
 mod authorize;
+mod claims;
 mod config;
 mod token;
+mod userinfo;
 mod web3;
 
 use authorize::authorize_endpoint;
 use config::{configuration, Config};
 use token::{post_token_endpoint, token_endpoint, Tokens};
+use userinfo::userinfo_endpoint;
 
 cached_static_response_handler! {
     259_200;
@@ -61,6 +65,12 @@ fn rocket() -> _ {
 
     let tokens: Tokens = Tokens {
         muted: Arc::new(Mutex::new(HashMap::new())),
+        bearer: Arc::new(Mutex::new(HashMap::new())),
+    };
+
+    let claims: ClaimsMutex = ClaimsMutex {
+        standard_claims: Arc::new(Mutex::new(HashMap::new())),
+        additional_claims: Arc::new(Mutex::new(HashMap::new())),
     };
 
     rocket
@@ -76,6 +86,7 @@ fn rocket() -> _ {
                 index,
                 authorize_endpoint,
                 token_endpoint,
+                userinfo_endpoint,
                 post_token_endpoint,
                 configuration,
                 jwk
@@ -83,4 +94,5 @@ fn rocket() -> _ {
         )
         .manage(config)
         .manage(tokens)
+        .manage(claims)
 }

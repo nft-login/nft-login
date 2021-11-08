@@ -1,7 +1,8 @@
+use crate::claims::{additional_claims, standard_claims, ClaimsMutex};
 use crate::config::Config;
 use crate::token::{token, Tokens};
-use crate::web3::validate;
-use openidconnect::{AuthorizationCode, TokenResponse};
+use crate::web3::{is_nft_owner_of, validate_signature};
+use openidconnect::{AccessToken, AuthorizationCode, TokenResponse};
 use rocket::http::Status;
 use rocket::response::Redirect;
 use rocket::State;
@@ -13,6 +14,7 @@ use uuid::Uuid;
 )]
 pub async fn authorize_endpoint(
     config: &State<Config>,
+    claims: &State<ClaimsMutex>,
     tokens: &State<Tokens>,
     client_id: String,
     redirect_uri: String,
@@ -36,7 +38,7 @@ pub async fn authorize_endpoint(
         return Ok(Redirect::temporary(url.to_string()));
     };
 
-    if !validate(
+    if !validate_signature(
         account.clone().unwrap(),
         nonce.clone().unwrap(),
         signature.clone().unwrap(),
@@ -44,27 +46,65 @@ pub async fn authorize_endpoint(
         return Err(Status::Unauthorized);
     }
 
+    if !is_nft_owner_of(
+        client_id.clone(),
+        account.clone().unwrap_or_default(),
+        config.node_provider.to_string(),
+    )
+    .await
+    .unwrap()
+    {
+        return Err(Status::Unauthorized);
+    }
+
+    let access_token = AccessToken::new(Uuid::new_v4().to_string());
+    let code = AuthorizationCode::new(Uuid::new_v4().to_string());
+
+    let standard_claims = standard_claims(&account.clone().unwrap());
+    let additional_claims = additional_claims(
+        &account.unwrap(),
+        &nonce.clone().unwrap(),
+        &signature.unwrap(),
+    );
+
+    claims
+        .standard_claims
+        .lock()
+        .unwrap()
+        .insert(access_token.secret().clone(), standard_claims.clone());
+    claims
+        .additional_claims
+        .lock()
+        .unwrap()
+        .insert(access_token.secret().clone(), additional_claims.clone());
+
     let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
     let token = token(
         config,
         client_id,
         nonce,
-        account,
-        signature.clone(),
-        Some(config.node_provider.to_string()),
+        standard_claims,
+        additional_claims,
+        access_token.clone(),
+        code.clone(),
     )
     .await;
 
-    let code = AuthorizationCode::new(Uuid::new_v4().to_string());
-
+    println!("{:?}", access_token.secret());
+    println!("{:?}", code.secret());
     let id_token = token.id_token().unwrap().to_string();
 
+    tokens
+        .bearer
+        .lock()
+        .unwrap()
+        .insert(code.secret().clone(), access_token.secret().clone());
     tokens
         .muted
         .lock()
         .unwrap()
-        .insert(code.secret().clone(), token);
+        .insert(access_token.secret().clone(), token);
 
     if let Some(response_type) = response_type {
         if response_type.contains("code") {

@@ -6,7 +6,7 @@ use web3::{
     types::{Address, U256},
 };
 
-pub fn validate(account: String, nonce: String, signature: String) -> bool {
+pub fn validate_signature(account: String, nonce: String, signature: String) -> bool {
     let message = eth_message(format!("{};{}", account, nonce));
     let signature = format!("{}", &signature[2..]);
     let signature = hex::decode(signature).unwrap();
@@ -91,7 +91,7 @@ mod tests {
         let nonce = "dotzxrenodo".to_string();
         let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
 
-        assert!(validate(account, nonce, signature));
+        assert!(validate_signature(account, nonce, signature));
     }
 
     #[ignore]

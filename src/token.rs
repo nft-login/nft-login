@@ -4,24 +4,22 @@ use openidconnect::core::{
     CoreJwsSigningAlgorithm, CoreRsaPrivateSigningKey, CoreTokenType,
 };
 use openidconnect::{
-    AccessToken, AdditionalClaims, Audience, EmptyExtraTokenFields, EndUserEmail, EndUserName,
-    IdToken, IdTokenClaims, IdTokenFields, IssuerUrl, JsonWebKeyId, LocalizedClaim,
-    StandardClaims, StandardTokenResponse, SubjectIdentifier, TokenResponse,
+    AccessToken, Audience, AuthorizationCode, EmptyExtraTokenFields, IdToken, IdTokenClaims,
+    IdTokenFields, IssuerUrl, JsonWebKeyId, StandardClaims, StandardTokenResponse,
 };
 use rocket::form::Form;
 use rocket::response::status::NotFound;
 use rocket::serde::json::Json;
 use rocket::State;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use uuid::Uuid;
 
+use crate::claims::Claims;
 use crate::config::Config;
-use crate::web3;
 
 pub struct Tokens {
     pub muted: Arc<Mutex<HashMap<String, NftTokenResponse>>>,
+    pub bearer: Arc<Mutex<HashMap<String, String>>>,
 }
 
 #[derive(FromForm)]
@@ -33,14 +31,19 @@ pub struct PostData {
     pub redirect_uri: String,
 }
 
-#[get("/token?<client_id>&<nonce>")]
+#[get("/token?<code>")]
 pub async fn token_endpoint(
-    config: &State<Config>,
-    client_id: String,
-    nonce: Option<String>,
-) -> String {
-    let token = token(config, client_id, nonce, None, None, None).await;
-    token.id_token().unwrap().to_string()
+    tokens: &State<Tokens>,
+    code: String
+)  -> Result<Json<NftTokenResponse>, NotFound<String>> {
+    let mutex = tokens.bearer.lock().unwrap();
+    let access_token = mutex.get(&code).unwrap();
+    let mutex = tokens.muted.lock().unwrap();
+    let token = mutex.get(access_token);
+    match token {
+        Some(token) => Ok(Json(token.clone())),
+        _ => Err(NotFound("Invalid Code".to_string())),
+    }
 }
 
 #[post("/token", data = "<post_data>")]
@@ -48,22 +51,8 @@ pub async fn post_token_endpoint(
     tokens: &State<Tokens>,
     post_data: Form<PostData>,
 ) -> Result<Json<NftTokenResponse>, NotFound<String>> {
-    let mutex = tokens.muted.lock().unwrap();
-    let token = mutex.get(&post_data.code);
-    match token {
-        Some(token) => Ok(Json(token.clone())),
-        _ => Err(NotFound("Invalid Code".to_string())),
-    }
+    token_endpoint(tokens, post_data.code.clone()).await
 }
-
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct Claims {
-    pub account: String,
-    pub nonce: String,
-    pub signature: String,
-}
-
-impl AdditionalClaims for Claims {}
 
 pub type NftIdTokenFields = IdTokenFields<
     Claims,
@@ -80,58 +69,20 @@ pub async fn token(
     config: &Config,
     client_id: String,
     nonce: Option<String>,
-    account: Option<String>,
-    signature: Option<String>,
-    node_provider: Option<String>,
+    standard_claims: StandardClaims<CoreGenderClaim>,
+    additional_claims: Claims,
+    access_token: AccessToken,
+    code: AuthorizationCode,
 ) -> NftTokenResponse {
     let rsa_pem = config.rsa_pem.clone();
-
-    let claims = match node_provider {
-        Some(node_provider) => {
-            let is_owner = web3::is_nft_owner_of(
-                client_id.clone(),
-                account.clone().unwrap_or_default(),
-                node_provider,
-            )
-            .await
-            .unwrap();
-            if is_owner {
-                Claims {
-                    account: account.clone().unwrap_or_default(),
-                    nonce: nonce.clone().unwrap_or_default(),
-                    signature: signature.clone().unwrap_or_default(),
-                }
-            } else {
-                Claims {
-                    account: "".to_string(),
-                    nonce: nonce.clone().unwrap_or_default(),
-                    signature: "".to_string(),
-                }
-            }
-        }
-        None => Claims {
-            account: account.clone().unwrap_or_default(),
-            nonce: nonce.clone().unwrap_or_default(),
-            signature: signature.clone().unwrap_or_default(),
-        },
-    };
-
-    let access_token = AccessToken::new(Uuid::new_v4().to_string());
-
-    let mut localized_claim = LocalizedClaim::new();
-    localized_claim.insert(None, EndUserName::new("anonymous".to_string()));
-
     let id_token = IdToken::new(
         IdTokenClaims::new(
             IssuerUrl::new(config.ext_hostname.clone()).unwrap(),
             vec![Audience::new(client_id)],
             Utc::now() + Duration::seconds(300),
             Utc::now(),
-            StandardClaims::new(SubjectIdentifier::new(account.clone().unwrap_or_default()))
-                .set_email(Some(EndUserEmail::new("no-reply@example.com".to_string())))
-                .set_email_verified(Some(false))
-                .set_name(Some(localized_claim)),
-            claims,
+            standard_claims,
+            additional_claims,
         ),
         // The private key used for signing the ID token. For confidential clients (those able
         // to maintain a client secret), a CoreHmacKey can also be used, in conjunction
@@ -153,7 +104,7 @@ pub async fn token(
         // When returning the ID token alongside an authorization code (e.g., in the implicit
         // flow), it is recommended to pass the authorization code here to set the `c_hash` claim
         // automatically.
-        None,
+        Some(&code),
     )
     .unwrap();
 
