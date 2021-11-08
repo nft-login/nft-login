@@ -47,9 +47,4 @@ pub async fn userinfo_endpoint(
 }
 
 #[options("/userinfo")]
-pub async fn options_userinfo_endpoint(
-    claims: &State<ClaimsMutex>,
-    bearer: Bearer,
-) -> Result<Json<UserInfoClaims<Claims, CoreGenderClaim>>, NotFound<String>> {
-    userinfo_endpoint(claims, bearer).await
-}
+pub async fn options_userinfo_endpoint() {}
