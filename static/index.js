@@ -33,6 +33,15 @@ async function sign_message() {
   location.href = "authorize" + query;
 }
 
+function chainDescription(chain) {
+  var name = chain || "Kovan";
+  return "Log in on " + name + " using your crypto account";
+}
+
+function nftDescription(nft) {
+  return "" + nft + "";
+}
+
 var sign_message_button = document.getElementById("sign_message_button");
 sign_message_button.addEventListener("click", sign_message);
 
@@ -41,4 +50,11 @@ console.log(queryString);
 const urlParams = new URLSearchParams(queryString);
 const nonce = urlParams.get("nonce");
 const redirect_uri = urlParams.get("redirect_uri");
+const chain = urlParams.get("chain");
+const nft = urlParams.get("client_id");
 console.log(nonce);
+
+document.getElementById("chain-description").innerHTML =
+  chainDescription(chain);
+document.getElementById("nft-description").innerHTML =
+  nftDescription(nft);
