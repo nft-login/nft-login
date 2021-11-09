@@ -5,6 +5,7 @@ default = "https://kovan.infura.io/v3/43"
 kovan = "https://kovan.infura.io/v3/43"
 okt = "https://exchaintestrpc.okex.org"
 clv = "https://rpc-3.clover.finance"
+heco = "https://http-testnet.hecochain.com"
 main = "https://cloudflare-eth.com"
 
 [debug]
