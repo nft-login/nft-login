@@ -5,12 +5,11 @@ html {
 
 body {
     margin-bottom: 70px;
-    background-color: bisque;
+    background-color: whitesmoke;
 }
 
-.code {
-    font-family: monospace;
-    word-wrap: break-word;
+#login-main {
+    min-height: 200px;
 }
 
 footer {
