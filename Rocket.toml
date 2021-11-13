@@ -7,6 +7,7 @@ okt = "https://exchaintestrpc.okex.org"
 clv = "https://rpc-3.clover.finance"
 heco = "https://http-testnet.hecochain.com"
 celo = "https://alfajores-forno.celo-testnet.org"
+polygon = "https://matic-mumbai.chainstacklabs.com/"
 main = "https://cloudflare-eth.com"
 
 [debug]
