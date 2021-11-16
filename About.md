@@ -41,12 +41,40 @@ We want to develop more customizable nft contracts, so we can add attributes to 
 * default or premium account
 * end date of service
 
-## Built with
-
-rust, openidconnect, web3, github-pages, rocket
-
 ## "Try it out" links
 
-* https://nft-login.github.io/svelte-oidc/
+* https://nft-login.github.io/nft-login-demo/
 * https://github.com/nft-login/nft-login
 * https://nft-login.github.io/nft-login-marketplace/
+* https://heco-nft-login-demo.4everland.app/
+
+## Test it
+
+The workflow is as following. You need a nft. We built a nft marketplace for easily getting tokens at https://nft-login.github.io/nft-login-marketplace/#/.
+
+Get your token then return to https://nft-login.github.io/nft-login-demo/ and login.
+
+During the login you are redirected to our project nft-login.net .
+
+### Okex Blockchain
+
+For OKEx Chain use this link https://nft-login.github.io/nft-login-demo/okt/ .
+
+Watch here how you can test the technology with https://oidcdebugger.com/ 
+
+[![NFT Login](https://img.youtube.com/vi/FZpdX5LvDoY/0.jpg)](https://www.youtube.com/watch?v=FZpdX5LvDoY)
+
+### Heco Blockchain
+
+Here is a video of the login on the heco chain with a scene of the Hecoinfo explorer.
+
+[![NFT Login](https://img.youtube.com/vi/-Zhz4o2dfaY/0.jpg)](https://www.youtube.com/watch?v=-Zhz4o2dfaY)
+
+Visit the login demo page hosted on 4everland https://heco-nft-login-demo.4everland.app .
+
+## Notice
+We also built the project Early Access Game NFT which is independent but visible in the demo videos as we use it to mint the nfts.
+
+## Built with
+
+rust, openidconnect, web3, github-pages, rocket, heco, nft, okexchain
