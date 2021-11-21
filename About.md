@@ -56,6 +56,17 @@ Get your token then return to https://nft-login.github.io/nft-login-demo/ and lo
 
 During the login you are redirected to our project nft-login.net .
 
+### Avalanche Blockchain
+
+Demo Login if you own a Token: https://nft-login.github.io/nft-login-demo/avax/
+
+### Theta Blockchain
+
+[![Theta submission](https://img.youtube.com/vi/CQxntEkuZXc/0.jpg)](https://www.youtube.com/watch?v=CQxntEkuZXc)
+
+Demo Login if you own a Token: https://nft-login.github.io/nft-login-demo/theta/
+Deployed Contract: https://testnet-explorer.thetatoken.org/account/0x8fb36197889f23e76e68e3fd57c6063a21dde897
+
 ### Okex Blockchain
 
 For OKEx Chain use this link https://nft-login.github.io/nft-login-demo/okt/ .

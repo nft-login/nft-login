@@ -10,6 +10,7 @@ celo = "https://alfajores-forno.celo-testnet.org"
 polygon = "https://matic-mumbai.chainstacklabs.com/"
 metis = "https://stardust.metis.io/?owner=588"
 theta = "https://eth-rpc-api-testnet.thetatoken.org/rpc"
+avax = "https://api.avax-test.network/ext/bc/C/rpc"
 main = "https://cloudflare-eth.com"
 
 [debug]
