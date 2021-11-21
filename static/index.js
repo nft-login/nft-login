@@ -35,7 +35,7 @@ async function sign_message() {
 
 function chainDescription(chain) {
   var name = chain || "Kovan";
-  return "Log in on " + name + " using your crypto account";
+  return "Log in on " + name + " using your crypto account - You have to sign a message";
 }
 
 function nftDescription(nft) {
