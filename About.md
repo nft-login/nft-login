@@ -41,6 +41,8 @@ We want to develop more customizable nft contracts, so we can add attributes to 
 * default or premium account
 * end date of service
 
+To bring this prototype into a working solution we need to improve the design, find a good provider to host and a nice domain name.
+
 ## "Try it out" links
 
 * https://nft-login.github.io/nft-login-demo/
@@ -55,6 +57,10 @@ The workflow is as following. You need a nft. We built a nft marketplace for eas
 Get your token then return to https://nft-login.github.io/nft-login-demo/ and login.
 
 During the login you are redirected to our project nft-login.net .
+
+### Celo Blockchain
+
+[![Celo submission](https://img.youtube.com/vi/USKg2Ik2zPI/0.jpg)](https://www.youtube.com/watch?v=USKg2Ik2zPI)
 
 ### Avalanche Blockchain
 
