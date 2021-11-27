@@ -11,6 +11,7 @@ polygon = "https://matic-mumbai.chainstacklabs.com/"
 metis = "https://stardust.metis.io/?owner=588"
 theta = "https://eth-rpc-api-testnet.thetatoken.org/rpc"
 avax = "https://api.avax-test.network/ext/bc/C/rpc"
+binance = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 main = "https://cloudflare-eth.com"
 
 [debug]
