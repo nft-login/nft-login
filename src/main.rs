@@ -63,11 +63,11 @@ fn index(
 
 #[get("/jwk")]
 fn default_jwk() -> String {
-    jwk()
+    jwk("".into())
 }
 
-#[get("/../jwk")]
-fn jwk() -> String {
+#[get("/<_realm>/jwk")]
+fn jwk(_realm: String) -> String {
     let rsa_pem = include_str!("../do-not-use.pem");
     let jwks = CoreJsonWebKeySet::new(vec![CoreRsaPrivateSigningKey::from_pem(
         &rsa_pem,
