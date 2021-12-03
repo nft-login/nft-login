@@ -24,6 +24,19 @@ pub fn default_configuration(config: &State<Config>) -> content::Json<String> {
     configuration(config, "default".into())
 }
 
+#[get("/<realm>/authorize/.well-known/openid-configuration")]
+pub fn authorize_well_known(config: &State<Config>, realm: String) -> content::Json<String> {
+    configuration(config, realm)
+}
+
+#[get("/.well-known/oauth-authorization-server/<realm>/authorize")]
+pub fn well_known_oauth_authorization_server(
+    config: &State<Config>,
+    realm: String,
+) -> content::Json<String> {
+    configuration(config, realm)
+}
+
 #[get("/<realm>/.well-known/openid-configuration")]
 pub fn configuration(config: &State<Config>, realm: String) -> content::Json<String> {
     let provider_metadata = CoreProviderMetadata::new(

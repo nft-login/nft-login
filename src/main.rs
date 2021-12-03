@@ -24,7 +24,10 @@ mod userinfo;
 mod web3;
 
 use authorize::{authorize_endpoint, default_authorize_endpoint};
-use config::{configuration, default_configuration, Config};
+use config::{
+    authorize_well_known, configuration, default_configuration,
+    well_known_oauth_authorization_server, Config,
+};
 use token::{
     default_post_token_endpoint, default_token_endpoint, post_token_endpoint, token_endpoint,
     Tokens,
@@ -143,6 +146,8 @@ fn rocket() -> _ {
                 default_post_token_endpoint,
                 configuration,
                 default_configuration,
+                authorize_well_known,
+                well_known_oauth_authorization_server,
                 jwk,
                 default_jwk
             ],

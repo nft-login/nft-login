@@ -32,7 +32,7 @@ This provider is a bridge between both worlds. The access is given based on the 
 
 ## Test with oidcdebugger
 
-Visit https://oidcdebugger.com and use https://nft-login.chriamue.net/ as authorize uri.
+Visit https://oidcdebugger.com and use https://nft-login.net/ as authorize uri.
 
 Use as client id the nft contract address `0x420d2a6E87D87992EB01e5BFe762B3F437dBfD85`.
 
