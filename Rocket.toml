@@ -1,5 +1,6 @@
 [default]
 ident = "nft-login"
+key_id = "key1"
 [default.node_provider]
 default = "https://kovan.infura.io/v3/43"
 kovan = "https://kovan.infura.io/v3/43"

@@ -62,16 +62,16 @@ fn index(
 }
 
 #[get("/jwk")]
-fn default_jwk() -> String {
-    jwk("".into())
+fn default_jwk(config: &State<Config>) -> String {
+    jwk(config, "".into())
 }
 
 #[get("/<_realm>/jwk")]
-fn jwk(_realm: String) -> String {
+fn jwk(config: &State<Config>, _realm: String) -> String {
     let rsa_pem = include_str!("../do-not-use.pem");
     let jwks = CoreJsonWebKeySet::new(vec![CoreRsaPrivateSigningKey::from_pem(
         &rsa_pem,
-        Some(JsonWebKeyId::new("key1".to_string())),
+        Some(JsonWebKeyId::new(config.key_id.to_string())),
     )
     .expect("Invalid RSA private key")
     .as_verification_key()]);

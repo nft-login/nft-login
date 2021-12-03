@@ -89,7 +89,7 @@ pub async fn token(
     config: &Config,
     realm: String,
     client_id: String,
-    nonce: Option<String>,
+    _nonce: Option<String>,
     standard_claims: StandardClaims<CoreGenderClaim>,
     additional_claims: Claims,
     access_token: AccessToken,
@@ -112,7 +112,7 @@ pub async fn token(
         // be used as the HMAC key.
         &CoreRsaPrivateSigningKey::from_pem(
             &rsa_pem.unwrap_or_default(),
-            Some(JsonWebKeyId::new(nonce.clone().unwrap_or_default())),
+            Some(JsonWebKeyId::new(config.key_id.to_string())),
         )
         .expect("Invalid RSA private key"),
         // Uses the RS256 signature algorithm. This crate supports any RS*, PS*, or HS*
