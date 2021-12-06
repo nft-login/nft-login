@@ -28,12 +28,6 @@ pub async fn authorize_endpoint(
     chain_id: Option<String>,
 ) -> Result<Redirect, Status> {
 
-    // change default realm to chain id
-    let realm = match realm.as_str() {
-        "default" => chain_id.clone().unwrap_or("default".into()),
-        _ => realm,
-    };
-
     if account.is_none() {
         let mut url = Url::parse(&format!("{}/{}", config.ext_hostname, realm)).unwrap();
         url.query_pairs_mut()
@@ -44,7 +38,7 @@ pub async fn authorize_endpoint(
             .append_pair("response_type", &response_type.unwrap_or_default())
             .append_pair("response_mode", &response_mode.unwrap_or_default())
             .append_pair("redirect_uri", &redirect_uri)
-            .append_pair("realm", &realm)
+            .append_pair("realm", &realm.clone())
             .append_pair("chain_id", &chain_id.clone().unwrap_or_default());
         return Ok(Redirect::temporary(url.to_string()));
     };
@@ -57,7 +51,12 @@ pub async fn authorize_endpoint(
         return Err(Status::Unauthorized);
     }
 
-    let node_provider = get_node(config, &realm);
+    let realm_or_chain_id = match realm.as_str() {
+        "default" => chain_id.clone().unwrap_or("default".into()),
+        _ => realm.clone(),
+    };
+
+    let node_provider = get_node(config, &realm_or_chain_id);
 
     if !is_nft_owner_of(
         client_id.clone(),
@@ -72,7 +71,7 @@ pub async fn authorize_endpoint(
 
     let access_token = AccessToken::new(Uuid::new_v4().to_string());
     let code = AuthorizationCode::new(Uuid::new_v4().to_string());
-    let chain_id = get_chain_id(config, &realm);
+    let chain_id = get_chain_id(config, &realm_or_chain_id);
 
     let standard_claims = standard_claims(&account.clone().unwrap());
     let additional_claims = additional_claims(

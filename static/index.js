@@ -48,14 +48,6 @@ function chainDescription(chain) {
   );
 }
 
-function on_default() {
-  const pathname = window.location.pathname;
-  console.log(pathname);
-  if (pathname == "/default") {
-    location.pathname = `${parseInt(ethereum.chainId)}`;
-  }
-}
-
 function nftDescription(nft) {
   return nft ? "contract: " + nft + "" : "";
 }
@@ -75,5 +67,3 @@ console.log(nonce);
 document.getElementById("chain-description").innerHTML =
   chainDescription(chain);
 document.getElementById("nft-description").innerHTML = nftDescription(nft);
-
-on_default();
