@@ -1,5 +1,5 @@
 use crate::claims::{additional_claims, standard_claims, ClaimsMutex};
-use crate::config::Config;
+use crate::config::{get_chain_id, get_node, Config};
 use crate::token::{token, Tokens};
 use crate::web3::{is_nft_owner_of, validate_signature};
 use openidconnect::{AccessToken, AuthorizationCode, TokenResponse};
@@ -10,7 +10,7 @@ use url::Url;
 use uuid::Uuid;
 
 #[get(
-    "/<realm>/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>"
+    "/<realm>/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<chain_id>"
 )]
 pub async fn authorize_endpoint(
     config: &State<Config>,
@@ -25,7 +25,15 @@ pub async fn authorize_endpoint(
     nonce: Option<String>,
     account: Option<String>,
     signature: Option<String>,
+    chain_id: Option<String>,
 ) -> Result<Redirect, Status> {
+
+    // change default realm to chain id
+    let realm = match realm.as_str() {
+        "default" => chain_id.clone().unwrap_or("default".into()),
+        _ => realm,
+    };
+
     if account.is_none() {
         let mut url = Url::parse(&format!("{}/{}", config.ext_hostname, realm)).unwrap();
         url.query_pairs_mut()
@@ -36,7 +44,8 @@ pub async fn authorize_endpoint(
             .append_pair("response_type", &response_type.unwrap_or_default())
             .append_pair("response_mode", &response_mode.unwrap_or_default())
             .append_pair("redirect_uri", &redirect_uri)
-            .append_pair("realm", &realm);
+            .append_pair("realm", &realm)
+            .append_pair("chain_id", &chain_id.clone().unwrap_or_default());
         return Ok(Redirect::temporary(url.to_string()));
     };
 
@@ -48,7 +57,7 @@ pub async fn authorize_endpoint(
         return Err(Status::Unauthorized);
     }
 
-    let node_provider = config.node_provider.get(&realm).unwrap();
+    let node_provider = get_node(config, &realm);
 
     if !is_nft_owner_of(
         client_id.clone(),
@@ -63,16 +72,15 @@ pub async fn authorize_endpoint(
 
     let access_token = AccessToken::new(Uuid::new_v4().to_string());
     let code = AuthorizationCode::new(Uuid::new_v4().to_string());
-    let chain_id = config.chain_id.get(&realm);
-    let node = config.node_provider.get(&realm);
+    let chain_id = get_chain_id(config, &realm);
 
     let standard_claims = standard_claims(&account.clone().unwrap());
     let additional_claims = additional_claims(
         &account.unwrap(),
         &nonce.clone().unwrap(),
         &signature.unwrap(),
-        chain_id.unwrap(),
-        node.unwrap(),
+        &chain_id,
+        &node_provider.clone(),
         &client_id,
     );
 
@@ -148,7 +156,7 @@ pub async fn authorize_endpoint(
 }
 
 #[get(
-    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<realm>"
+    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<realm>&<chain_id>"
 )]
 pub async fn default_authorize_endpoint(
     config: &State<Config>,
@@ -163,6 +171,7 @@ pub async fn default_authorize_endpoint(
     nonce: Option<String>,
     account: Option<String>,
     signature: Option<String>,
+    chain_id: Option<String>,
 ) -> Result<Redirect, Status> {
     authorize_endpoint(
         config,
@@ -177,6 +186,7 @@ pub async fn default_authorize_endpoint(
         nonce,
         account,
         signature,
+        chain_id,
     )
     .await
 }

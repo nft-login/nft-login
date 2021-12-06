@@ -21,6 +21,36 @@ pub struct Config {
     pub rsa_pem: Option<String>,
 }
 
+pub fn get_chain_id(config: &Config, realm: &String) -> i32 {
+    // return default kovan
+    let numeric = realm.parse::<i32>();
+    match numeric {
+        Ok(ok) => match config.chain_id.values().any(|&val| val == ok) {
+            true => ok,
+            false => 42,
+        },
+        Err(_) => config.chain_id.get(realm).unwrap_or(&42).clone(),
+    }
+}
+
+pub fn get_node(config: &Config, realm: &String) -> String {
+    let chain_id = get_chain_id(config, realm);
+
+    let node = config
+        .chain_id
+        .iter()
+        .find_map(|(key, &val)| if val == chain_id { Some(key) } else { None });
+
+    match node {
+        Some(node) => config.node_provider.get(node).unwrap().clone(),
+        _ => config
+            .node_provider
+            .get(&"default".to_string())
+            .unwrap()
+            .clone(),
+    }
+}
+
 #[get("/.well-known/openid-configuration")]
 pub fn default_configuration(config: &State<Config>) -> content::Json<String> {
     configuration(config, "default".into())
@@ -81,4 +111,45 @@ pub fn configuration(config: &State<Config>, realm: String) -> content::Json<Str
     ]));
 
     content::Json(serde_json::to_string(&provider_metadata).unwrap())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_chain_id() {
+        let config = Config {
+            ext_hostname: "".to_string(),
+            key_id: "".to_string(),
+            node_provider: HashMap::from([("example".into(), "https://example.com".into())]),
+            chain_id: HashMap::from([("main".into(), 1)]),
+            rsa_pem: None,
+        };
+        assert_eq!(get_chain_id(&config, &"main".to_string()), 1);
+        assert_eq!(get_chain_id(&config, &"unknown".to_string()), 42);
+        assert_eq!(get_chain_id(&config, &"1".to_string()), 1);
+        assert_eq!(get_chain_id(&config, &"2".to_string()), 42);
+    }
+
+    #[test]
+    fn test_node() {
+        let config = Config {
+            ext_hostname: "".to_string(),
+            key_id: "".to_string(),
+            node_provider: HashMap::from([("default".into(), "https://example.com".into())]),
+            chain_id: HashMap::from([("default".into(), 1)]),
+            rsa_pem: None,
+        };
+        assert_eq!(
+            get_node(&config, &"example".to_string()),
+            "https://example.com"
+        );
+        assert_eq!(
+            get_node(&config, &"unknown".to_string()),
+            "https://example.com"
+        );
+        assert_eq!(get_node(&config, &"1".to_string()), "https://example.com");
+    }
 }

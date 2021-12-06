@@ -1,6 +1,10 @@
 window.addEventListener("load", function () {
   if (typeof window.ethereum !== "undefined") {
-    console.log("Web3 Detected! " + ethereum.networkVersion);
+    console.log(
+      "Web3 Detected! ",
+      ethereum.networkVersion,
+      parseInt(ethereum.chainId)
+    );
   } else {
     console.log("No Web3 Detected... please install Metamask");
     document.getElementById("metamask_warning").hidden = false;
@@ -28,14 +32,20 @@ async function sign_message() {
     queryString +
     "&account=" +
     encodeURIComponent(account) +
+    "&chain_id=" +
+    parseInt(ethereum.chainId) +
     "&signature=" +
     encodeURIComponent(signature);
   location.href = "authorize" + query;
 }
 
 function chainDescription(chain) {
-  var name = chain || "Kovan";
-  return "Log in on " + name + " using your crypto account - You have to sign a message";
+  var name = chain || `${parseInt(ethereum.chainId)}`;
+  return (
+    "Log in on " +
+    name +
+    " chain using your crypto account - You have to sign a message"
+  );
 }
 
 function nftDescription(nft) {
