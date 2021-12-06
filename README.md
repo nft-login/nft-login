@@ -53,6 +53,10 @@ Connect with an account on kovan.
 
 You must own a nft on https://devpavan04.github.io/cryptoboys-nft-marketplace/#/.
 
+## Example
+
+You can find an example, how to use the provider, for javascripts [express server](examples/expressjs/index.js).
+
 ## List of supported chains
 
 | Chain                          | Authorize URI           | Contract to use as Client ID               | Marketplace to get NFT                                     | Faucet                                                                                        |     |
