@@ -28,15 +28,18 @@ async function sign_message() {
   console.log(payload);
   console.log(message);
   console.log(signature);
-  const query =
-    queryString +
-    "&account=" +
-    encodeURIComponent(account) +
-    "&chain_id=" +
-    parseInt(ethereum.chainId) +
-    "&signature=" +
-    encodeURIComponent(signature);
-  location.href = "authorize" + query;
+  console.log(chainId);
+  const urlParams = new URLSearchParams(queryString);
+  urlParams.set("account", encodeURIComponent(
+    account
+  ));
+  urlParams.set("chain_id", chainId);
+  urlParams.set("signature", encodeURIComponent(signature));
+
+
+  const query = `${urlParams.toString()}`;
+  console.log(query);
+  window.open("/authorize?" + query, '_self');
 }
 
 function chainDescription(chain) {
@@ -56,6 +59,8 @@ var sign_message_button = document.getElementById("sign_message_button");
 sign_message_button.addEventListener("click", sign_message);
 
 const queryString = window.location.search;
+const chainId = parseInt(ethereum.chainId);
+console.log(chainId);
 console.log(queryString);
 const urlParams = new URLSearchParams(queryString);
 const nonce = urlParams.get("nonce");
