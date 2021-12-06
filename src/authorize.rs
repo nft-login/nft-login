@@ -63,12 +63,16 @@ pub async fn authorize_endpoint(
 
     let access_token = AccessToken::new(Uuid::new_v4().to_string());
     let code = AuthorizationCode::new(Uuid::new_v4().to_string());
+    let chain_id = config.chain_id.get(&realm);
+    let node = config.node_provider.get(&realm);
 
     let standard_claims = standard_claims(&account.clone().unwrap());
     let additional_claims = additional_claims(
         &account.unwrap(),
         &nonce.clone().unwrap(),
         &signature.unwrap(),
+        chain_id.unwrap(),
+        node.unwrap(),
     );
 
     claims

@@ -11,6 +11,8 @@ pub struct Claims {
     pub account: String,
     pub nonce: String,
     pub signature: String,
+    pub chain_id: i32,
+    pub node: String,
 }
 
 impl AdditionalClaims for Claims {}
@@ -27,10 +29,18 @@ pub fn standard_claims(account: &String) -> StandardClaims<CoreGenderClaim> {
         .set_name(Some(EndUserName::new("anonymous".to_string()).into()))
 }
 
-pub fn additional_claims(account: &String, nonce: &String, signature: &String) -> Claims {
+pub fn additional_claims(
+    account: &String,
+    nonce: &String,
+    signature: &String,
+    chain_id: &i32,
+    node: &String,
+) -> Claims {
     Claims {
         account: account.clone(),
         nonce: nonce.clone(),
         signature: signature.clone(),
+        chain_id: chain_id.clone(),
+        node: node.clone(),
     }
 }

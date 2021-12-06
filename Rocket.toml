@@ -14,6 +14,19 @@ theta = "https://eth-rpc-api-testnet.thetatoken.org/rpc"
 avax = "https://api.avax-test.network/ext/bc/C/rpc"
 binance = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 main = "https://cloudflare-eth.com"
+[default.chain_id]
+default = 42
+kovan = 42
+okt = 65
+clv = 1023
+heco = 256
+celo = 44787
+polygon = 80001
+metis = 588
+theta = 365
+avax = 43113
+binance = 97
+main = 1
 
 [debug]
 port = 8000
