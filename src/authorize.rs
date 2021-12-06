@@ -73,6 +73,7 @@ pub async fn authorize_endpoint(
         &signature.unwrap(),
         chain_id.unwrap(),
         node.unwrap(),
+        &client_id,
     );
 
     claims

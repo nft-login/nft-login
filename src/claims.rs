@@ -13,6 +13,7 @@ pub struct Claims {
     pub signature: String,
     pub chain_id: i32,
     pub node: String,
+    pub contract: String,
 }
 
 impl AdditionalClaims for Claims {}
@@ -35,6 +36,7 @@ pub fn additional_claims(
     signature: &String,
     chain_id: &i32,
     node: &String,
+    contract: &String,
 ) -> Claims {
     Claims {
         account: account.clone(),
@@ -42,5 +44,6 @@ pub fn additional_claims(
         signature: signature.clone(),
         chain_id: chain_id.clone(),
         node: node.clone(),
+        contract: contract.clone(),
     }
 }
