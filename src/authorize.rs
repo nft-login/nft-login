@@ -10,7 +10,7 @@ use url::Url;
 use uuid::Uuid;
 
 #[get(
-    "/<realm>/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<chain_id>"
+    "/<realm>/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<chain_id>&<contract>"
 )]
 pub async fn authorize_endpoint(
     config: &State<Config>,
@@ -26,8 +26,8 @@ pub async fn authorize_endpoint(
     account: Option<String>,
     signature: Option<String>,
     chain_id: Option<String>,
+    contract: Option<String>,
 ) -> Result<Redirect, Status> {
-
     if account.is_none() {
         let mut url = Url::parse(&format!("{}/{}", config.ext_hostname, realm)).unwrap();
         url.query_pairs_mut()
@@ -39,7 +39,8 @@ pub async fn authorize_endpoint(
             .append_pair("response_mode", &response_mode.unwrap_or_default())
             .append_pair("redirect_uri", &redirect_uri)
             .append_pair("realm", &realm.clone())
-            .append_pair("chain_id", &chain_id.clone().unwrap_or_default());
+            .append_pair("chain_id", &chain_id.clone().unwrap_or(realm.clone()))
+            .append_pair("contract", &contract.clone().unwrap_or(client_id.clone()));
         return Ok(Redirect::temporary(url.to_string()));
     };
 
@@ -74,13 +75,16 @@ pub async fn authorize_endpoint(
     let chain_id = get_chain_id(config, &realm_or_chain_id);
 
     let standard_claims = standard_claims(&account.clone().unwrap());
+
+    let contract = contract.unwrap_or(client_id.clone());
+
     let additional_claims = additional_claims(
         &account.unwrap(),
         &nonce.clone().unwrap(),
         &signature.unwrap(),
         &chain_id,
         &node_provider.clone(),
-        &client_id,
+        &contract,
     );
 
     claims
@@ -155,7 +159,7 @@ pub async fn authorize_endpoint(
 }
 
 #[get(
-    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<realm>&<chain_id>"
+    "/authorize?<client_id>&<redirect_uri>&<state>&<response_type>&<response_mode>&<nonce>&<account>&<signature>&<realm>&<chain_id>&<contract>"
 )]
 pub async fn default_authorize_endpoint(
     config: &State<Config>,
@@ -171,6 +175,7 @@ pub async fn default_authorize_endpoint(
     account: Option<String>,
     signature: Option<String>,
     chain_id: Option<String>,
+    contract: Option<String>,
 ) -> Result<Redirect, Status> {
     authorize_endpoint(
         config,
@@ -186,6 +191,7 @@ pub async fn default_authorize_endpoint(
         account,
         signature,
         chain_id,
+        contract,
     )
     .await
 }
