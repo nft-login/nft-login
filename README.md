@@ -15,6 +15,10 @@ Todays online services access are mostly based on identities and not the ownersh
 
 This provider is a bridge between both worlds. The access is given based on the ownership of a nft.
 
+Here is an example app that uses nft login, it's a digital secret santa:
+
+[![Wichteln](https://img.youtube.com/vi/KHob6FXr33M/0.jpg)](https://www.youtube.com/watch?v=KHob6FXr33M)
+
 ## Functionality
 
 ![Implicit Flow Diagram](https://s3.amazonaws.com/onelogin-screenshots/dev_site/images/oidc-implicit-flow.png)
