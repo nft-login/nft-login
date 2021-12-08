@@ -13,6 +13,7 @@ metis = "https://stardust.metis.io/?owner=588"
 theta = "https://eth-rpc-api-testnet.thetatoken.org/rpc"
 avax = "https://api.avax-test.network/ext/bc/C/rpc"
 binance = "https://data-seed-prebsc-1-s1.binance.org:8545/"
+evmos = "https://ethereum.rpc.evmos.dev"
 main = "https://cloudflare-eth.com"
 [default.chain_id]
 default = 42
@@ -26,6 +27,7 @@ metis = 588
 theta = 365
 avax = 43113
 binance = 97
+evmos = 9000
 main = 1
 
 [debug]
