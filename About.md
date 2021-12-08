@@ -16,17 +16,33 @@ would allow login users owning a special nft.
 
 There are two things needed to build this provider. The part for the services, which connect to the provider is a server backend speaking the openid connect protocol. The other part is a end user frontend which connects to the blockchains to verify the ownership of the nft.
 
+We built it on this technology stack:
+
+- For the backend framework we used rust language and tokio, rocket frameworks.
+- For frontend we used vanilla javascript and bootstrap.
+- The service runs in docker containers.
+- As cdn we use cloudflare.
+- We connect to more than 10 blockchains via web3.
+- The frontend signature will be created via metamask.
+- For demonstration we created a [demo](https://nft-login.github.io/nft-login-demo/) and a secret santa app called [wichteln](https://wichteln.nft-login.net/).
+- For nft exchange we created a [nft marketplace](https://market.nft-login.net/).
+
 ## Challenges we ran into
 
 The openid connect provider is just a part in a complex system.
 For the enduser to use it, there must be a marketplace to get a nft.
-Also the user should login into a service, so we had to host a service, that 
+Also the user should login into a service, so we had to host a service, that
 uses nft-login for authorization. In the end we had to develop next to the nft-login provider a marketplace (we used an existing and customized it) and a service (svelte oidc example, which we also customized).
 
 ## Accomplishments that we're proud of
 
 We are proud that we deployed a erc721 smart contract, hosted a marketplace,
 and provide the owners access to a service using the nft-login provider.
+
+We additionally built an app that uses nft-login for demo purposes.
+[![Wichteln](https://img.youtube.com/vi/KHob6FXr33M/0.jpg)](https://www.youtube.com/watch?v=KHob6FXr33M)
+It's an online digital secret santa. Owners of nft can login and upload christmas greetings.
+The nft can be given away and the new owner can view the greetings.
 
 ## What we learned
 
@@ -38,17 +54,17 @@ how complicated metamask signatures can be.
 As of today nft-login just proves a user is the holder of a nft.
 We want to develop more customizable nft contracts, so we can add attributes to the nft, so we can provide claims like
 
-* default or premium account
-* end date of service
+- default or premium account
+- end date of service
 
 To bring this prototype into a working solution we need to improve the design, find a good provider to host and a nice domain name.
 
 ## "Try it out" links
 
-* https://nft-login.github.io/nft-login-demo/
-* https://github.com/nft-login/nft-login
-* https://nft-login.github.io/nft-login-marketplace/
-* https://heco-nft-login-demo.4everland.app/
+- https://nft-login.github.io/nft-login-demo/
+- https://github.com/nft-login/nft-login
+- https://nft-login.github.io/nft-login-marketplace/
+- https://heco-nft-login-demo.4everland.app/
 
 ## Test it
 
@@ -77,7 +93,7 @@ Deployed Contract: https://testnet-explorer.thetatoken.org/account/0x8fb36197889
 
 For OKEx Chain use this link https://nft-login.github.io/nft-login-demo/okt/ .
 
-Watch here how you can test the technology with https://oidcdebugger.com/ 
+Watch here how you can test the technology with https://oidcdebugger.com/
 
 [![NFT Login](https://img.youtube.com/vi/FZpdX5LvDoY/0.jpg)](https://www.youtube.com/watch?v=FZpdX5LvDoY)
 
@@ -90,6 +106,7 @@ Here is a video of the login on the heco chain with a scene of the Hecoinfo expl
 Visit the login demo page hosted on 4everland https://heco-nft-login-demo.4everland.app .
 
 ## Notice
+
 We also built the project Early Access Game NFT which is independent but visible in the demo videos as we use it to mint the nfts.
 
 ## Built with
