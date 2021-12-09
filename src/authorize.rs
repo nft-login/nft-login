@@ -58,9 +58,10 @@ pub async fn authorize_endpoint(
     };
 
     let node_provider = get_node(config, &realm_or_chain_id);
+    let contract = contract.unwrap_or(client_id.clone());
 
     if !is_nft_owner_of(
-        client_id.clone(),
+        contract.clone(),
         account.clone().unwrap_or_default(),
         node_provider.clone(),
     )
@@ -75,8 +76,6 @@ pub async fn authorize_endpoint(
     let chain_id = get_chain_id(config, &realm_or_chain_id);
 
     let standard_claims = standard_claims(&account.clone().unwrap());
-
-    let contract = contract.unwrap_or(client_id.clone());
 
     let additional_claims = additional_claims(
         &account.unwrap(),

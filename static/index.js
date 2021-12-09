@@ -66,7 +66,7 @@ const urlParams = new URLSearchParams(queryString);
 const nonce = urlParams.get("nonce");
 const redirect_uri = urlParams.get("redirect_uri");
 const chain = urlParams.get("chain");
-const nft = urlParams.get("client_id");
+const nft = urlParams.get("contract") || urlParams.get("client_id");
 console.log(nonce);
 
 document.getElementById("chain-description").innerHTML =
