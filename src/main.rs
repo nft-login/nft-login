@@ -22,6 +22,7 @@ mod config;
 mod token;
 mod userinfo;
 mod web3;
+mod tests;
 
 use authorize::{authorize_endpoint, default_authorize_endpoint};
 use config::{
@@ -102,7 +103,7 @@ impl Fairing for CORS {
 }
 
 #[launch]
-fn rocket() -> _ {
+pub fn rocket() -> _ {
     let rocket = rocket::build();
     let figment = rocket.figment();
     let mut config: Config = figment.extract().expect("config");
