@@ -19,10 +19,10 @@ use openidconnect::{JsonWebKeyId, PrivateSigningKey};
 mod authorize;
 mod claims;
 mod config;
+mod tests;
 mod token;
 mod userinfo;
 mod web3;
-mod tests;
 
 use authorize::{authorize_endpoint, default_authorize_endpoint};
 use config::{
@@ -102,6 +102,11 @@ impl Fairing for CORS {
     }
 }
 
+#[catch(401)]
+fn unauthorized() -> String {
+    format!("We could not find a token for your address on this contract.")
+}
+
 #[launch]
 pub fn rocket() -> _ {
     let rocket = rocket::build();
@@ -156,4 +161,5 @@ pub fn rocket() -> _ {
         .manage(config)
         .manage(tokens)
         .manage(claims)
+        .register("/", catchers![unauthorized])
 }

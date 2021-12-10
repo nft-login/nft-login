@@ -60,14 +60,18 @@ pub async fn authorize_endpoint(
     let node_provider = get_node(config, &realm_or_chain_id);
     let contract = contract.unwrap_or(client_id.clone());
 
-    if !is_nft_owner_of(
+    let is_owner = is_nft_owner_of(
         contract.clone(),
         account.clone().unwrap_or_default(),
         node_provider.clone(),
     )
-    .await
-    .unwrap()
-    {
+    .await;
+
+    if is_owner.is_ok() {
+        if !is_owner.unwrap() {
+            return Err(Status::Unauthorized);
+        }
+    } else {
         return Err(Status::Unauthorized);
     }
 

@@ -2,7 +2,7 @@ use std::str::FromStr;
 use web3::signing::{keccak256, recover};
 
 use web3::{
-    contract::{Contract, Options},
+    contract::{Contract, Options, Error},
     types::{Address, U256},
 };
 
@@ -29,7 +29,7 @@ pub async fn is_nft_owner_of(
     let contract = Contract::from_json(web3.eth(), contract_address, abi).unwrap();
 
     let owner_address = Address::from_str(&owner_address).unwrap();
-    let balance: U256 = contract
+    let balance: Result<U256, Error> = contract
         .query(
             "balanceOf",
             (owner_address,),
@@ -37,9 +37,11 @@ pub async fn is_nft_owner_of(
             Options::default(),
             None,
         )
-        .await
-        .unwrap();
-    Ok(balance > U256::from(0))
+        .await;
+    match balance {
+        Ok(balance) => Ok(balance > U256::from(0)),
+        Err(e) => return Err(web3::Error::InvalidResponse(e.to_string()))
+    }
 }
 
 pub fn eth_message(message: String) -> [u8; 32] {
