@@ -8,3 +8,9 @@ services:
       - ./Rocket.toml:/Rocket.toml
     ports:
       - "8080:8080"
+
+  tunnel:
+    image: cloudflare/cloudflared:2021.11.0
+    command: tunnel --config /etc/cloudflared/config.yml --no-autoupdate run
+    volumes:
+      - "./.cloudflared:/etc/cloudflared"
