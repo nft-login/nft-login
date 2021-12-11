@@ -7,7 +7,7 @@ edition = "2021"
 anyhow = "1.0.44"
 chrono = "0.4"
 hex = "0.4.3"
-openidconnect = "2.1.1"
+openidconnect = "2.1"
 rocket = { version = "0.5.0-rc.1", features = ["json"] }
 rocket-include-static-resources = { version = "0.10.0", features=["cache"] }
 serde = { version = "1.0", features = ["derive"] }

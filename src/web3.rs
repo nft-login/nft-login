@@ -114,6 +114,7 @@ mod tests {
         .unwrap());
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_crypto_boy() {
         let rocket = rocket::build();
