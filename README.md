@@ -1,5 +1,8 @@
 # nft-login
 
+[![Build Status](https://github.com/nft-login/nft-login/workflows/Build/badge.svg)](https://github.com/nft-login/nft-login/actions)
+[![codecov](https://codecov.io/gh/nft-login/nft-login/branch/main/graph/badge.svg?token=QEH2EW6LX4)](https://codecov.io/gh/nft-login/nft-login)
+
 OIDC login for wallets owning an nft.
 
 ## context

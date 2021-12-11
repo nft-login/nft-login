@@ -21,9 +21,40 @@ mod jwk_test {
     #[test]
     fn hello_world() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get("/").dispatch();
+        let response = client.get("/jwk").dispatch();
         assert_eq!(response.status(), Status::Ok);
-        println!("{:?}", response.into_string().unwrap());
+        let response = client.get("/kovan/jwk").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+    }
+}
+
+#[cfg(test)]
+mod config_test {
+    use crate::rocket;
+    use rocket::http::Status;
+    use rocket::local::blocking::Client;
+    use serde_json::Value;
+
+    #[test]
+    fn configuration() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client.get("/.well-known/openid-configuration").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let response = client
+            .get("/kovan/authorize/.well-known/openid-configuration")
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let config = response.into_json::<Value>().unwrap();
+        assert_eq!(
+            config.get("authorization_endpoint").unwrap(),
+            "http://localhost:8000/kovan/authorize"
+        );
+        assert!(config
+            .get("userinfo_endpoint")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .ends_with("kovan/userinfo"));
     }
 }
 
