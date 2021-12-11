@@ -1,0 +1,4 @@
+[test_config]
+debug = true
+verbose = false
+out = ["Html", "Xml"]
