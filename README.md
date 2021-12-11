@@ -1,7 +1,8 @@
 # nft-login
 
-[![Build Status](https://github.com/nft-login/nft-login/workflows/Build/badge.svg)](https://github.com/nft-login/nft-login/actions)
+[![Build Status](https://github.com/nft-login/nft-login/actions/workflows/coverage.yml/badge.svg)](https://github.com/nft-login/nft-login/actions)
 [![codecov](https://codecov.io/gh/nft-login/nft-login/branch/main/graph/badge.svg?token=QEH2EW6LX4)](https://codecov.io/gh/nft-login/nft-login)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OIDC login for wallets owning an nft.
 
