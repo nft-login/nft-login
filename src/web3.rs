@@ -2,7 +2,7 @@ use std::str::FromStr;
 use web3::signing::{keccak256, recover};
 
 use web3::{
-    contract::{Contract, Options, Error},
+    contract::{Contract, Error, Options},
     types::{Address, U256},
 };
 
@@ -40,7 +40,7 @@ pub async fn is_nft_owner_of(
         .await;
     match balance {
         Ok(balance) => Ok(balance > U256::from(0)),
-        Err(e) => return Err(web3::Error::InvalidResponse(e.to_string()))
+        Err(e) => return Err(web3::Error::InvalidResponse(e.to_string())),
     }
 }
 
