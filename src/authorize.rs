@@ -27,7 +27,7 @@ pub async fn authorize_endpoint(
     signature: Option<String>,
     chain_id: Option<String>,
     contract: Option<String>,
-) -> Result<Redirect, Status> {
+) -> Result<Redirect, (Status, String)> {
     if account.is_none() {
         let mut url = Url::parse(&format!("{}/{}", config.ext_hostname, realm)).unwrap();
         url.query_pairs_mut()
@@ -45,19 +45,27 @@ pub async fn authorize_endpoint(
     };
 
     if nonce.is_none() {
-        return Err(Status::BadRequest);
+        return Err((Status::BadRequest, "nonce missing".to_string()));
     }
 
     if signature.is_none() {
-        return Err(Status::BadRequest);
+        return Err((Status::BadRequest, "signature missing".to_string()));
     }
+
+    let redirect_uri = Url::parse(&redirect_uri);
+
+    if redirect_uri.is_err() {
+        return Err((Status::BadRequest, "wrong redirect uri".to_string()));
+    }
+
+    let mut redirect_uri = redirect_uri.unwrap();
 
     if !validate_signature(
         account.clone().unwrap(),
         nonce.clone().unwrap(),
         signature.clone().unwrap(),
     ) {
-        return Err(Status::Unauthorized);
+        return Err((Status::BadRequest, "no valide signature".to_string()));
     }
 
     let realm_or_chain_id = match realm.as_str() {
@@ -77,10 +85,10 @@ pub async fn authorize_endpoint(
 
     if is_owner.is_ok() {
         if !is_owner.unwrap() {
-            return Err(Status::Unauthorized);
+            return Err((Status::Unauthorized, "account is no owner".to_string()));
         }
     } else {
-        return Err(Status::Unauthorized);
+        return Err((Status::Unauthorized, "account is no owner".to_string()));
     }
 
     let access_token = AccessToken::new(Uuid::new_v4().to_string());
@@ -108,8 +116,6 @@ pub async fn authorize_endpoint(
         .lock()
         .unwrap()
         .insert(access_token.secret().clone(), additional_claims.clone());
-
-    let mut redirect_uri = Url::parse(&redirect_uri).unwrap();
 
     let token = token(
         config,
@@ -187,7 +193,7 @@ pub async fn default_authorize_endpoint(
     signature: Option<String>,
     chain_id: Option<String>,
     contract: Option<String>,
-) -> Result<Redirect, Status> {
+) -> Result<Redirect, (Status, String)> {
     authorize_endpoint(
         config,
         claims,
@@ -289,7 +295,7 @@ mod tests {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
         let response = client
             .get(format!(
-                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&contract={}&account={}",
+                "/authorize?client_id={}&realm=kovan&redirect_uri=https://example.com&contract={}&account={}",
                 client_id, contract, account
             ))
             .dispatch();
@@ -297,7 +303,7 @@ mod tests {
 
         let response = client
             .get(format!(
-                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&nonce=42&contract={}&account={}",
+                "/authorize?client_id={}&realm=kovan&redirect_uri=https://example.com&nonce=42&contract={}&account={}",
                 client_id, contract, account
             ))
             .dispatch();
@@ -305,10 +311,68 @@ mod tests {
 
         let response = client
             .get(format!(
-                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&nonce=42&contract={}&account={}&signature={}",
+                "/authorize?client_id={}&realm=kovan&redirect_uri=https://example.com&nonce=42&contract={}&account={}&signature={}",
                 client_id, contract, account, signature
             ))
             .dispatch();
+        assert_eq!(response.status(), Status::BadRequest);
+    }
+
+    #[test]
+    fn account_valid_signature() {
+        let client_id = "foo";
+        let contract = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
+
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=https://example.com&nonce={}&contract={}&account={}&signature={}",
+                client_id, nonce, contract, account, signature
+            ))
+            .dispatch();
         assert_eq!(response.status(), Status::Unauthorized);
+    }
+
+    #[test]
+    fn account_not_owner() {
+        let client_id = "foo";
+        let contract = "0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4";
+        let account = "0x4b895d519f01c2be9a1472f9333b597017f41495".to_string();
+        let nonce = "L3xt4w3hZqhyMbKqSjLDhY5bXID8UMItk_ILdutKb-I".to_string();
+        let signature = "0x620335720244ea6317d39a8f70d0df98d5e8299ad64d0b423f136002fa4636dc2bc1c75c7b6c9a09669e01d48bf91ad78ebafb82d2065573be90f2ec2480874f1c".to_string();
+
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=https://example.com&nonce={}&contract={}&account={}&signature={}",
+                client_id, nonce, contract, account, signature
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::Unauthorized);
+        assert_eq!(response.into_string().unwrap(), "account is no owner");
+    }
+
+    #[test]
+    fn account_is_owner() {
+        let client_id = "foo";
+        let contract = "0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4";
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
+
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=https://example.com&nonce={}&contract={}&account={}&signature={}",
+                client_id, nonce, contract, account, signature
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
     }
 }
