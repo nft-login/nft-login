@@ -253,6 +253,92 @@ mod tests {
     }
 
     #[test]
+    fn wrong_redirect_uri() {
+        let client_id = "foo";
+        let contract = "0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4";
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
+
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=wrong_uri&nonce={}&contract={}&account={}&signature={}",
+                client_id, nonce, contract, account, signature
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::BadRequest);
+        assert_eq!(response.into_string().unwrap(), "wrong redirect uri");
+    }
+
+    #[test]
+    fn test_state() {
+        let client_id = "foo";
+        let contract = "0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4";
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
+        let state = "state".to_string();
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=https://example.com&nonce={}&contract={}&account={}&signature={}&state={}",
+                client_id, nonce, contract, account, signature, state
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
+
+        let params: HashMap<String, String> = response_url
+            .query()
+            .map(|v| {
+                url::form_urlencoded::parse(v.as_bytes())
+                    .into_owned()
+                    .collect()
+            })
+            .unwrap_or_else(HashMap::new);
+
+        assert_eq!(params.get("state"), Some(&state));
+    }
+
+    #[test]
+    fn test_code_id_token() {
+        let client_id = "foo";
+        let contract = "0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4";
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
+        let state = "state".to_string();
+        let code = "code".to_string();
+        let id_token = "id_token".to_string();
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=https://example.com&nonce={}&contract={}&account={}&signature={}&state={}&code={}&id_token={}&response_type=code+id_token",
+                client_id, nonce, contract, account, signature, state, code, id_token
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
+
+        let params: HashMap<String, String> = response_url
+            .query()
+            .map(|v| {
+                url::form_urlencoded::parse(v.as_bytes())
+                    .into_owned()
+                    .collect()
+            })
+            .unwrap_or_else(HashMap::new);
+
+        assert_eq!(params.get("state"), Some(&state));
+        assert!(params.get("code").is_some());
+        assert!(params.get("id_token").is_some());
+    }
+
+    #[test]
     fn redirect_with_contract() {
         let client_id = "foo";
         let contract = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
