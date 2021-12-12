@@ -76,8 +76,9 @@ mod authorize_test {
 
     #[test]
     fn redirect() {
+        let client_id = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
         let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get("/authorize?client_id=0xa0d4E5CdD89330ef9d0d1071247909882f0562eA&realm=kovan&redirect_uri=unused").dispatch();
+        let response = client.get(format!("/authorize?client_id={}&realm=kovan&redirect_uri=unused", client_id)).dispatch();
         assert_eq!(response.status(), Status::TemporaryRedirect);
         let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
         let mut path_segments = response_url.path_segments().unwrap();
@@ -98,7 +99,42 @@ mod authorize_test {
 
         assert_eq!(
             params.get("contract"),
-            Some(&"0xa0d4E5CdD89330ef9d0d1071247909882f0562eA".to_string())
+            Some(&client_id.to_string())
+        );
+    }
+
+    #[test]
+    fn redirect_with_contract() {
+        let client_id = "foo";
+        let contract = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client.get(format!("/authorize?client_id={}&realm=kovan&redirect_uri=unused&contract={}", client_id, contract)).dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
+        let mut path_segments = response_url.path_segments().unwrap();
+        assert_eq!(path_segments.next(), Some("kovan"));
+
+        let params: HashMap<String, String> = response_url
+            .query()
+            .map(|v| {
+                url::form_urlencoded::parse(v.as_bytes())
+                    .into_owned()
+                    .collect()
+            })
+            .unwrap_or_else(HashMap::new);
+
+        assert_eq!(params.get("realm"), Some(&"kovan".to_string()));
+
+        assert_eq!(params.get("chain_id"), Some(&"kovan".to_string()));
+
+        assert_ne!(
+            params.get("contract"),
+            Some(&client_id.to_string())
+        );
+
+        assert_eq!(
+            params.get("contract"),
+            Some(&contract.to_string())
         );
     }
 }
