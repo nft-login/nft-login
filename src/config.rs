@@ -110,7 +110,12 @@ pub fn configuration(config: &State<Config>, realm: String) -> content::Json<Str
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rocket::http::Status;
+    use rocket::local::blocking::Client;
+    use serde_json::Value;
     use std::collections::HashMap;
+
+    use crate::rocket;
 
     #[test]
     fn test_chain_id() {
@@ -145,5 +150,35 @@ mod tests {
             "https://example.com"
         );
         assert_eq!(get_node(&config, &"1".to_string()), "https://example.com");
+    }
+
+    #[test]
+    fn test_endpoints() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client.get("/.well-known/openid-configuration").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let response = client
+            .get("/kovan/.well-known/openid-configuration")
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let response = client
+            .get("/.well-known/oauth-authorization-server/kovan/authorize")
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let response = client
+            .get("/kovan/authorize/.well-known/openid-configuration")
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let config = response.into_json::<Value>().unwrap();
+        assert_eq!(
+            config.get("authorization_endpoint").unwrap(),
+            "http://localhost:8000/kovan/authorize"
+        );
+        assert!(config
+            .get("userinfo_endpoint")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .ends_with("kovan/userinfo"));
     }
 }

@@ -44,6 +44,14 @@ pub async fn authorize_endpoint(
         return Ok(Redirect::temporary(url.to_string()));
     };
 
+    if nonce.is_none() {
+        return Err(Status::BadRequest);
+    }
+
+    if signature.is_none() {
+        return Err(Status::BadRequest);
+    }
+
     if !validate_signature(
         account.clone().unwrap(),
         nonce.clone().unwrap(),
@@ -197,4 +205,110 @@ pub async fn default_authorize_endpoint(
         contract,
     )
     .await
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::rocket;
+    use rocket::http::Status;
+    use rocket::local::blocking::Client;
+    use std::collections::HashMap;
+    use url::Url;
+
+    #[test]
+    fn redirect() {
+        let client_id = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=kovan&redirect_uri=unused",
+                client_id
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
+        let mut path_segments = response_url.path_segments().unwrap();
+        assert_eq!(path_segments.next(), Some("kovan"));
+
+        let params: HashMap<String, String> = response_url
+            .query()
+            .map(|v| {
+                url::form_urlencoded::parse(v.as_bytes())
+                    .into_owned()
+                    .collect()
+            })
+            .unwrap_or_else(HashMap::new);
+
+        assert_eq!(params.get("realm"), Some(&"kovan".to_string()));
+
+        assert_eq!(params.get("chain_id"), Some(&"kovan".to_string()));
+
+        assert_eq!(params.get("contract"), Some(&client_id.to_string()));
+    }
+
+    #[test]
+    fn redirect_with_contract() {
+        let client_id = "foo";
+        let contract = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&contract={}",
+                client_id, contract
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
+        let mut path_segments = response_url.path_segments().unwrap();
+        assert_eq!(path_segments.next(), Some("kovan"));
+
+        let params: HashMap<String, String> = response_url
+            .query()
+            .map(|v| {
+                url::form_urlencoded::parse(v.as_bytes())
+                    .into_owned()
+                    .collect()
+            })
+            .unwrap_or_else(HashMap::new);
+
+        assert_eq!(params.get("realm"), Some(&"kovan".to_string()));
+
+        assert_eq!(params.get("chain_id"), Some(&"kovan".to_string()));
+
+        assert_ne!(params.get("contract"), Some(&client_id.to_string()));
+
+        assert_eq!(params.get("contract"), Some(&contract.to_string()));
+    }
+
+    #[test]
+    fn account_no_signature() {
+        let client_id = "foo";
+        let contract = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
+        let account = "0xa0d4E5CdD89330ef9d0d1071247909882f0562eA";
+        let signature = "";
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&contract={}&account={}",
+                client_id, contract, account
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::BadRequest);
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&nonce=42&contract={}&account={}",
+                client_id, contract, account
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::BadRequest);
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=kovan&redirect_uri=unused&nonce=42&contract={}&account={}&signature={}",
+                client_id, contract, account, signature
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::Unauthorized);
+    }
 }

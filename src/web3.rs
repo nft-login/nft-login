@@ -8,8 +8,15 @@ use web3::{
 
 pub fn validate_signature(account: String, nonce: String, signature: String) -> bool {
     let message = eth_message(format!("{};{}", account, nonce));
+    if signature.len() < 2 {
+        return false;
+    }
     let signature = (&signature[2..]).to_string();
-    let signature = hex::decode(signature).unwrap();
+    let signature = hex::decode(signature);
+    if signature.is_err() {
+        return false;
+    }
+    let signature = signature.unwrap();
     let pubkey0 = recover(&message, &signature[..64], 0);
     let pubkey1 = recover(&message, &signature[..64], 1);
     let pubkey0 = format!("{:02X?}", pubkey0.unwrap());
@@ -71,6 +78,21 @@ mod tests {
             )
             .as_bytes(),
         )
+    }
+
+    #[test]
+    fn test_wrong_signature() {
+        let account = "".to_string();
+        let nonce = "".to_string();
+        let signature = "".to_string();
+        assert!(!validate_signature(
+            account.clone(),
+            nonce.clone(),
+            signature
+        ));
+
+        let signature = "foobar".to_string();
+        assert!(!validate_signature(account, nonce, signature));
     }
 
     #[test]
