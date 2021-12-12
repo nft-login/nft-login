@@ -47,7 +47,11 @@ pub async fn token_endpoint(
     code: String,
 ) -> Result<Json<NftTokenResponse>, NotFound<String>> {
     let mutex = tokens.bearer.lock().unwrap();
-    let access_token = mutex.get(&code).unwrap();
+    let access_token = mutex.get(&code);
+    if access_token.is_none() {
+        return Err(NotFound("Invalid Code".to_string()));
+    }
+    let access_token = access_token.unwrap();
     let mutex = tokens.muted.lock().unwrap();
     let token = mutex.get(access_token);
     match token {
@@ -177,8 +181,15 @@ mod tests {
         let code = params.get("code").unwrap();
         let response = client.get(format!("/token?code={}", code)).dispatch();
         assert_eq!(response.status(), Status::Ok);
+        let response = client.get(format!("/okt/token?code={}", code)).dispatch();
+        assert_eq!(response.status(), Status::Ok);
         let token = response.into_json::<Value>().unwrap();
         let access_token = token.get("access_token");
         assert!(access_token.is_some());
+
+        let response = client
+            .get(format!("/token?code={}", "invalid".to_string()))
+            .dispatch();
+        assert_eq!(response.status(), Status::NotFound);
     }
 }
