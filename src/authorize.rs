@@ -364,11 +364,8 @@ mod tests {
             .unwrap_or_else(HashMap::new);
 
         assert_eq!(params.get("realm"), Some(&"kovan".to_string()));
-
         assert_eq!(params.get("chain_id"), Some(&"kovan".to_string()));
-
         assert_ne!(params.get("contract"), Some(&client_id.to_string()));
-
         assert_eq!(params.get("contract"), Some(&contract.to_string()));
     }
 

@@ -135,3 +135,50 @@ pub async fn token(
         NftIdTokenFields::new(Some(id_token), EmptyExtraTokenFields {}),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::rocket;
+    use rocket::http::Status;
+    use rocket::local::blocking::Client;
+    use serde_json::Value;
+    use std::collections::HashMap;
+    use url::Url;
+
+    #[test]
+    fn token() {
+        let client_id = "foo";
+        let contract = "0x886B6781CD7dF75d8440Aba84216b2671AEFf9A4";
+        let account = "0x9c9e8eabd947658bdb713e0d3ebfe56860abdb8d".to_string();
+        let nonce = "dotzxrenodo".to_string();
+        let signature = "0x87b709d1e84aab056cf089af31e8d7c891d6f363663ff3eeb4bbb4c4e0602b2e3edf117fe548626b8d83e3b2c530cb55e2baff29ca54dbd495bb45764d9aa44c1c".to_string();
+
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .get(format!(
+                "/authorize?client_id={}&realm=okt&redirect_uri=https://example.com&nonce={}&contract={}&account={}&signature={}",
+                client_id, nonce, contract, account, signature
+            ))
+            .dispatch();
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        let response_url = Url::parse(response.headers().get("Location").next().unwrap()).unwrap();
+
+        let params: HashMap<String, String> = response_url
+            .query()
+            .map(|v| {
+                url::form_urlencoded::parse(v.as_bytes())
+                    .into_owned()
+                    .collect()
+            })
+            .unwrap_or_else(HashMap::new);
+
+        assert!(params.get("code").is_some());
+        let code = params.get("code").unwrap();
+        let response = client.get(format!("/token?code={}", code)).dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let token = response.into_json::<Value>().unwrap();
+        let access_token = token.get("access_token");
+        assert!(access_token.is_some());
+    }
+}
