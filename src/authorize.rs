@@ -40,7 +40,7 @@ pub async fn authorize_endpoint(
             .append_pair("redirect_uri", &redirect_uri)
             .append_pair("realm", &realm.clone())
             .append_pair("chain_id", &chain_id.clone().unwrap_or(realm.clone()))
-            .append_pair("contract", &contract.clone().unwrap_or(client_id.clone()));
+            .append_pair("contract", &contract.unwrap_or(client_id.clone()));
         return Ok(Redirect::temporary(url.to_string()));
     };
 
@@ -134,7 +134,7 @@ pub async fn authorize_endpoint(
         if response_type.contains("code") {
             redirect_uri
                 .query_pairs_mut()
-                .append_pair("code", &code.secret());
+                .append_pair("code", code.secret());
         }
         if response_type.contains("id_token") {
             redirect_uri
@@ -148,7 +148,7 @@ pub async fn authorize_endpoint(
     } else {
         redirect_uri
             .query_pairs_mut()
-            .append_pair("code", &code.secret());
+            .append_pair("code", code.secret());
     };
 
     match state {

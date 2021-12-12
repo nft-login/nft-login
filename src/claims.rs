@@ -42,7 +42,7 @@ pub fn additional_claims(
         account: account.clone(),
         nonce: nonce.clone(),
         signature: signature.clone(),
-        chain_id: chain_id.clone(),
+        chain_id: *chain_id,
         node: node.clone(),
         contract: contract.clone(),
     }

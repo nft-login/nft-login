@@ -43,7 +43,7 @@ pub async fn userinfo_endpoint(
 ) -> Result<Json<UserInfoClaims<Claims, CoreGenderClaim>>, NotFound<String>> {
     println!("{:?}", bearer);
 
-    let access_token = bearer.0.clone();
+    let access_token = bearer.0;
 
     let locked = claims.standard_claims.lock().unwrap();
     let standard_claims = locked.get(&access_token).unwrap();

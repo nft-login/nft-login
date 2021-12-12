@@ -8,7 +8,7 @@ use web3::{
 
 pub fn validate_signature(account: String, nonce: String, signature: String) -> bool {
     let message = eth_message(format!("{};{}", account, nonce));
-    let signature = format!("{}", &signature[2..]);
+    let signature = (&signature[2..]).to_string();
     let signature = hex::decode(signature).unwrap();
     let pubkey0 = recover(&message, &signature[..64], 0);
     let pubkey1 = recover(&message, &signature[..64], 1);
@@ -40,7 +40,7 @@ pub async fn is_nft_owner_of(
         .await;
     match balance {
         Ok(balance) => Ok(balance > U256::from(0)),
-        Err(e) => return Err(web3::Error::InvalidResponse(e.to_string())),
+        Err(e) => Err(web3::Error::InvalidResponse(e.to_string())),
     }
 }
 

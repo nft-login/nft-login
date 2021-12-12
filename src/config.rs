@@ -29,7 +29,7 @@ pub fn get_chain_id(config: &Config, realm: &String) -> i32 {
             true => ok,
             false => 42,
         },
-        Err(_) => config.chain_id.get(realm).unwrap_or(&42).clone(),
+        Err(_) => *config.chain_id.get(realm).unwrap_or(&42),
     }
 }
 
@@ -72,14 +72,9 @@ pub fn well_known_oauth_authorization_server(
 #[get("/<realm>/.well-known/openid-configuration")]
 pub fn configuration(config: &State<Config>, realm: String) -> content::Json<String> {
     let provider_metadata = CoreProviderMetadata::new(
-        IssuerUrl::new(format!("{}/{}", config.ext_hostname, realm).to_string()).unwrap(),
-        AuthUrl::new(format!("{}/{}/authorize", config.ext_hostname, realm).to_string()).unwrap(),
-        JsonWebKeySetUrl::new(
-            format!("{}/{}/jwk", config.ext_hostname, realm)
-                .to_string()
-                .to_string(),
-        )
-        .unwrap(),
+        IssuerUrl::new(format!("{}/{}", config.ext_hostname, realm)).unwrap(),
+        AuthUrl::new(format!("{}/{}/authorize", config.ext_hostname, realm)).unwrap(),
+        JsonWebKeySetUrl::new(format!("{}/{}/jwk", config.ext_hostname, realm)).unwrap(),
         vec![
             ResponseTypes::new(vec![CoreResponseType::Code]),
             ResponseTypes::new(vec![CoreResponseType::Token, CoreResponseType::IdToken]),
@@ -89,11 +84,10 @@ pub fn configuration(config: &State<Config>, realm: String) -> content::Json<Str
         EmptyAdditionalProviderMetadata {},
     )
     .set_token_endpoint(Some(
-        TokenUrl::new(format!("{}/{}/token", config.ext_hostname, realm).to_string()).unwrap(),
+        TokenUrl::new(format!("{}/{}/token", config.ext_hostname, realm)).unwrap(),
     ))
     .set_userinfo_endpoint(Some(
-        UserInfoUrl::new(format!("{}/{}/userinfo", config.ext_hostname, realm).to_string())
-            .unwrap(),
+        UserInfoUrl::new(format!("{}/{}/userinfo", config.ext_hostname, realm)).unwrap(),
     ))
     .set_scopes_supported(Some(vec![
         Scope::new("openid".to_string()),

@@ -41,6 +41,14 @@ mod config_test {
         let response = client.get("/.well-known/openid-configuration").dispatch();
         assert_eq!(response.status(), Status::Ok);
         let response = client
+            .get("/kovan/.well-known/openid-configuration")
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let response = client
+            .get("/.well-known/oauth-authorization-server/kovan/authorize")
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        let response = client
             .get("/kovan/authorize/.well-known/openid-configuration")
             .dispatch();
         assert_eq!(response.status(), Status::Ok);

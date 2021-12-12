@@ -71,7 +71,7 @@ fn default_jwk(config: &State<Config>) -> String {
 fn jwk(config: &State<Config>, _realm: String) -> String {
     let rsa_pem = include_str!("../do-not-use.pem");
     let jwks = CoreJsonWebKeySet::new(vec![CoreRsaPrivateSigningKey::from_pem(
-        &rsa_pem,
+        rsa_pem,
         Some(JsonWebKeyId::new(config.key_id.to_string())),
     )
     .expect("Invalid RSA private key")
@@ -104,7 +104,7 @@ impl Fairing for CORS {
 
 #[catch(401)]
 fn unauthorized() -> String {
-    format!("We could not find a token for your address on this contract.")
+    "We could not find a token for your address on this contract.".to_string()
 }
 
 #[launch]
