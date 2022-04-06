@@ -10,6 +10,7 @@ heco = "https://http-testnet.hecochain.com"
 celo = "https://alfajores-forno.celo-testnet.org"
 polygon = "https://matic-mumbai.chainstacklabs.com/"
 metis = "https://stardust.metis.io/?owner=588"
+meter = "https://rpctest.meter.io/"
 theta = "https://eth-rpc-api-testnet.thetatoken.org/rpc"
 avax = "https://api.avax-test.network/ext/bc/C/rpc"
 binance = "https://data-seed-prebsc-1-s1.binance.org:8545/"
@@ -24,6 +25,7 @@ heco = 256
 celo = 44787
 polygon = 80001
 metis = 588
+meter = 83
 theta = 365
 avax = 43113
 binance = 97
