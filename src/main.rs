@@ -42,6 +42,7 @@ cached_static_response_handler! {
     259_200;
     "/index.js" => cached_indexjs => "indexjs",
     "/index.css" => cached_indexcss => "indexcss",
+    "/sitemap.txt" => cached_sitemaptxt => "sitemaptxt",
 }
 
 #[get("/")]
@@ -131,10 +132,11 @@ pub fn rocket() -> _ {
         .attach(static_resources_initializer!(
             "indexjs" => "static/index.js",
             "indexcss" => "static/index.css",
+            "sitemaptxt" => "static/sitemap.txt",
             "index" => ("static", "index.html"),
         ))
         .attach(CORS)
-        .mount("/", routes![cached_indexjs, cached_indexcss])
+        .mount("/", routes![cached_indexjs, cached_indexcss, cached_sitemaptxt])
         .mount(
             "/",
             routes![
