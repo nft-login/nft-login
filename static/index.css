@@ -18,3 +18,8 @@ footer {
     width: 100%;
     height: 2.5rem;
 }
+
+.footer .container {
+    display: flex;
+    justify-content: space-between;
+}
